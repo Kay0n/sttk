@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.joml.Matrix3x2fStack;
 
-
 public class GrimoireScreen extends Screen {
 
     private static final Identifier TOKEN_TEXTURE = Identifier.of("sttk", "textures/gui/token-greyscale.png");
@@ -41,7 +40,6 @@ public class GrimoireScreen extends Screen {
         }
     }
 
-
     @Override
     protected void init() {
         this.globalButtons.clear();
@@ -50,32 +48,26 @@ public class GrimoireScreen extends Screen {
         setupGlobalButtons();
     }
 
-    private void calculateLayout() {
-        if (players.size() == 0) return;
 
-        int maxScreenTokenSize = MAX_TOKEN_SIZE / MinecraftClient.getInstance().getWindow().getScaleFactor();
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        
 
-        double maxScreenRadius = (Math.min(this.width, this.height) / 2.0) - SCREEN_PADDING;
+        calculateTokenLayout(); 
 
-        if (players.size() == 1) {
-            this.currentTokenSize = maxScreenTokenSize;
-            this.currentLayoutRadius = 0;
-            return;
+        drawTokenCircle(context, mouseX, mouseY);
+
+        if (selectedPlayer != null) {
+            drawTokenModal(context);
         }
 
-        double sinN = Math.sin(Math.PI / players.size());
-        double maxFeasibleSize = (2 * maxScreenRadius * sinN - TOKEN_MARGIN) / (1 + sinN);
-
-        int calculatedSize = (int) Math.min(maxScreenTokenSize, maxFeasibleSize);
-        this.currentTokenSize = Math.max(10, calculatedSize); // 10 is a sanity "absolute minimum" so it doesn't vanish        // 4. Back-calculate the Layout Radius
-
-        this.currentLayoutRadius = (int) (maxScreenRadius - (this.currentTokenSize / 2.0));
-        
-        if (this.currentLayoutRadius < 0) this.currentLayoutRadius = 0;
+        super.render(context, mouseX, mouseY, delta);
     }
 
+    
 
 
+    // ====== Global Buttons ======
     private void setupGlobalButtons() {
         int btnWidth = 70;
         int btnHeight = 20;
@@ -105,44 +97,50 @@ public class GrimoireScreen extends Screen {
 
 
 
-    private void openPopup(PlayerToken player) {
-        this.selectedPlayer = player;
-        globalButtons.forEach(b -> b.active = false);
-        
-        ButtonWidget closeBtn = ButtonWidget.builder(Text.of("❌ Close"), b -> closePopup())
-                .dimensions((this.width/2)-60, (this.height/2)+40, 120, 20).build();
-        this.addDrawableChild(closeBtn);
-        this.popupButtons.add(closeBtn);
+
+    // ====== Popup Modal Interface ======
+    private void drawTokenModal(DrawContext context) {
+        context.fillGradient(0, 0, this.width, this.height, 0x50000000, 0x50000000);
+        int w = 140; int h = 100;
+        int x = (this.width / 2) - (w/2);
+        int y = (this.height / 2) - (h/2);
+        context.fill(x, y, x + w, y + h, 0xFF202020);
+        context.drawBorder(x, y, w, h, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.of(selectedPlayer.name), this.width/2, y + 6, 0xFFFFFFFF);
+        ButtonWidget.builder(Text.of("a"), b -> debug("a"))
+                .dimensions(x, y, 50, 20).build();
     }
 
 
-    private void closePopup() {
-        this.selectedPlayer = null;
-        this.popupButtons.forEach(this::remove);
-        this.popupButtons.clear();
-        globalButtons.forEach(b -> b.active = true);
-    }
 
 
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
+    // ====== Token and Text Rendering ======
+    private void calculateTokenLayout() {
+        if (players.size() == 0) return;
 
-        calculateLayout(); 
+        int maxScreenTokenSize = MAX_TOKEN_SIZE / MinecraftClient.getInstance().getWindow().getScaleFactor();
 
-        drawPlayerCircle(context, mouseX, mouseY);
+        double maxScreenRadius = (Math.min(this.width, this.height) / 2.0) - SCREEN_PADDING;
 
-        if (selectedPlayer != null) {
-            drawPopupOverlay(context);
+        if (players.size() == 1) {
+            this.currentTokenSize = maxScreenTokenSize;
+            this.currentLayoutRadius = 0;
+            return;
         }
+
+        double sinN = Math.sin(Math.PI / players.size());
+        double maxFeasibleSize = (2 * maxScreenRadius * sinN - TOKEN_MARGIN) / (1 + sinN);
+
+        int calculatedSize = (int) Math.min(maxScreenTokenSize, maxFeasibleSize);
+        this.currentTokenSize = Math.max(10, calculatedSize); // 10 is a sanity "absolute minimum" so it doesn't vanish        // 4. Back-calculate the Layout Radius
+
+        this.currentLayoutRadius = (int) (maxScreenRadius - (this.currentTokenSize / 2.0));
+        
+        if (this.currentLayoutRadius < 0) this.currentLayoutRadius = 0;
     }
 
 
-
-
-
-
-    private void drawPlayerCircle(DrawContext context, int mouseX, int mouseY) {
+    private void drawTokenCircle(DrawContext context, int mouseX, int mouseY) {
         if (players.isEmpty()) return;
 
         int centerX = this.width / 2;
@@ -178,7 +176,6 @@ public class GrimoireScreen extends Screen {
     }
 
 
-
     private void drawToken(DrawContext context, int x, int y, int size, int mouseX, int mouseY, PlayerToken player) {
         // boolean isHovered = false;
         // if (selectedPlayer == null) {
@@ -194,11 +191,8 @@ public class GrimoireScreen extends Screen {
                 currentTokenSize, currentTokenSize,
                 currentTokenSize, currentTokenSize
         );
-
-
-
-        
     }
+
 
     public void drawText(DrawContext context, int x, int y, int size, int mouseX, int mouseY, PlayerToken player){
         float referenceSize = 64.0f; 
@@ -208,13 +202,10 @@ public class GrimoireScreen extends Screen {
         matrices.pushMatrix();
 
         float centerX = x + (size / 2.0f);
-        
-
         float paddingY = size * 0.05f; 
         float anchorY = y + paddingY;
 
         matrices.translate(centerX, anchorY);
-        
         matrices.scale(scale, scale);
 
         Text name = Text.of(player.name);
@@ -222,37 +213,32 @@ public class GrimoireScreen extends Screen {
         int textX = -nameW / 2;
         int textY = 0;
         context.drawTextWithShadow(this.textRenderer, name, textX , textY, 0xFFFFAA00);
+
         matrices.popMatrix();
     }
 
 
-    private void drawPopupOverlay(DrawContext context) {
-        context.fillGradient(0, 0, this.width, this.height, 0xAA000000, 0xAA000000);
-        int w = 140; int h = 100;
-        int x = (this.width / 2) - (w/2);
-        int y = (this.height / 2) - (h/2);
-        context.fill(x, y, x + w, y + h, 0xFF202020);
-        context.drawBorder(x, y, w, h, 0xFFFFFFFF);
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.of(selectedPlayer.name), this.width/2, y + 6, 0xFFFFFFFF);
-    }
 
 
+
+    // ====== Input Handling ======
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (selectedPlayer != null) return super.mouseClicked(mouseX, mouseY, button);
 
         if (button == 0) {
             for (PlayerToken player : players) {
-                double dist = Math.sqrt(Math.pow(mouseX - player.renderX, 2) + Math.pow(mouseY - player.renderY, 2));
-                // Use dynamic size for hitbox
-                if (dist <= (currentTokenSize / 2.0)) {
-                    openPopup(player);
+                double distFromToken = Math.sqrt(Math.pow(mouseX - player.renderX, 2) + Math.pow(mouseY - player.renderY, 2));
+                if (distFromToken <= (currentTokenSize / 2.0)) {
+                    this.selectedPlayer = player;
                     return true;
                 }
             }
+            this.selectedPlayer = null;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
+
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -265,6 +251,9 @@ public class GrimoireScreen extends Screen {
     }
 
 
+
+
+    // ====== Utils ======
     private void debug(String msg) {
         if (client != null && client.player != null) 
             client.player.sendMessage(Text.of("§b[Grimoire] §f" + msg), false);
