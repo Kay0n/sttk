@@ -1,6 +1,7 @@
 
-package online.refract.client;
+package online.refract.client.gui;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -8,11 +9,13 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import online.refract.Sttk;
+import online.refract.client.SttkClient;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import org.joml.Matrix3x2fStack;
+
 
 public class GrimoireScreen extends Screen {
 
@@ -21,9 +24,9 @@ public class GrimoireScreen extends Screen {
     private final List<PlayerToken> players = new ArrayList<>();
     private PlayerToken selectedPlayer = null;
 
-    private static final int MAX_TOKEN_SIZE = 80; // Never bigger than this
-    private static final int MIN_TOKEN_SIZE = 32; // Never smaller than this
-    private static final int TOKEN_BUFFER = 5;    // Pixels of space between tokens
+    private static final int MAX_TOKEN_SIZE = 400; // Never bigger than this
+    private static final int TOKEN_MARGIN = 1;    // Pixels of space between tokens
+    private static final int SCREEN_PADDING = 1; // Pixels from screen edge to token edge
 
     private int currentTokenSize = 32;
     private int currentLayoutRadius = 100;
@@ -45,37 +48,50 @@ public class GrimoireScreen extends Screen {
         this.popupButtons.clear();
         this.selectedPlayer = null;
         setupGlobalButtons();
-        
-        calculateLayout();
     }
-
 
     private void calculateLayout() {
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
+        if (players.size() == 0) return;
 
-        int maxAvailableRadius = (Math.min(this.width, this.height) / 2) - 40;
+        int maxScreenTokenSize = MAX_TOKEN_SIZE / MinecraftClient.getInstance().getWindow().getScaleFactor();
 
-        // Formula: Chord Length = 2 * R * sin(PI / N)
-        // Goal: TokenSize + Buffer <= Chord Length
-        // Therefore: TokenSize = (2 * R * sin(PI / N)) - Buffer
-        double angleStep = Math.PI / players.size(); // (PI / N)
-        double maxAllowedSizeByCircumference = (2 * maxAvailableRadius * Math.sin(angleStep)) - TOKEN_BUFFER;
+        double maxScreenRadius = (Math.min(this.width, this.height) / 2.0) - SCREEN_PADDING;
 
-        this.currentTokenSize = (int) Math.clamp(maxAllowedSizeByCircumference, MIN_TOKEN_SIZE, MAX_TOKEN_SIZE);
+        if (players.size() == 1) {
+            this.currentTokenSize = maxScreenTokenSize;
+            this.currentLayoutRadius = 0;
+            return;
+        }
 
-        this.currentLayoutRadius = maxAvailableRadius;
+        double sinN = Math.sin(Math.PI / players.size());
+        double maxFeasibleSize = (2 * maxScreenRadius * sinN - TOKEN_MARGIN) / (1 + sinN);
+
+        int calculatedSize = (int) Math.min(maxScreenTokenSize, maxFeasibleSize);
+        this.currentTokenSize = Math.max(10, calculatedSize); // 10 is a sanity "absolute minimum" so it doesn't vanish        // 4. Back-calculate the Layout Radius
+
+        this.currentLayoutRadius = (int) (maxScreenRadius - (this.currentTokenSize / 2.0));
+        
+        if (this.currentLayoutRadius < 0) this.currentLayoutRadius = 0;
     }
+
 
 
     private void setupGlobalButtons() {
         int btnWidth = 70;
         int btnHeight = 20;
         int padding = 4;
-        int x = this.width - btnWidth - padding;
+        int x = 0 + padding;
         int y = padding;
+        int gap = 22;
         
-        addGlobalBtn("Reset", x, y, "Action: Reset All");
+        addGlobalBtn("✋ Vote", x, y, "Action: Vote");
+        addGlobalBtn("🌘 Night", x, y + gap, "Action: Night");
+        addGlobalBtn("☁️ Evening", x, y + gap*2, "Action: Evening");
+        addGlobalBtn("🔆 Day", x, y + gap*3, "Action: Day");
+
+        addGlobalBtn("⏳ Timer", x + this.width - btnWidth - padding * 2, y, "Action: Timer");
+        addGlobalBtn("☰ Order",(x + this.width - btnWidth - (padding * 2)), y + gap, "Action: Rearrange");
+        addGlobalBtn("🔄 Reset", (x + this.width - btnWidth - (padding * 2)), y + gap*2, "Action: Reset Scores");
     }
 
 
@@ -85,6 +101,8 @@ public class GrimoireScreen extends Screen {
         this.addDrawableChild(btn);
         this.globalButtons.add(btn);
     }
+
+
 
 
     private void openPopup(PlayerToken player) {
@@ -120,14 +138,23 @@ public class GrimoireScreen extends Screen {
     }
 
 
+
+
+
+
     private void drawPlayerCircle(DrawContext context, int mouseX, int mouseY) {
+        if (players.isEmpty()) return;
+
         int centerX = this.width / 2;
         int centerY = this.height / 2;
 
+        double startAngle = -Math.PI / 2; // first token at top
+
         for (int i = 0; i < players.size(); i++) {
             PlayerToken player = players.get(i);
-            
-            double angle = (-Math.PI / 2) + (i * (2 * Math.PI / players.size()));
+
+            double angle = startAngle + (i * (2 * Math.PI / players.size()));
+
             int x = (int) (centerX + currentLayoutRadius * Math.cos(angle));
             int y = (int) (centerY + currentLayoutRadius * Math.sin(angle));
 
@@ -137,28 +164,65 @@ public class GrimoireScreen extends Screen {
             int drawX = x - (currentTokenSize / 2);
             int drawY = y - (currentTokenSize / 2);
 
-            boolean isHovered = false;
-            if (selectedPlayer == null) {
-                double dist = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
-                if (dist <= currentTokenSize / 2.0) isHovered = true;
-            }
-
-            context.drawTexture(
-                    RenderPipelines.GUI_TEXTURED, 
-                    TOKEN_TEXTURE,
-                    drawX, drawY,
-                    0f, 0f,
-                    currentTokenSize, currentTokenSize,
-                    currentTokenSize, currentTokenSize
-            );
-
-            if (currentTokenSize > 20) {
-                Text name = Text.of(player.name);
-                int nameW = this.textRenderer.getWidth(name);
-                // Adjust text position based on size
-                context.drawTextWithShadow(this.textRenderer, name, x - (nameW / 2), drawY + currentTokenSize + 2, 0xFFFFAA00);
-            }
+            drawToken(context, drawX, drawY, currentTokenSize, mouseX, mouseY, player);
         }
+
+        for (int i = 0; i < players.size(); i++) {
+            PlayerToken player = players.get(i);
+
+            int drawX = player.renderX - (currentTokenSize / 2);
+            int drawY = player.renderY - (currentTokenSize / 2);
+
+            drawText(context, drawX, drawY, currentTokenSize, mouseX, mouseY, player);
+        }
+    }
+
+
+
+    private void drawToken(DrawContext context, int x, int y, int size, int mouseX, int mouseY, PlayerToken player) {
+        // boolean isHovered = false;
+        // if (selectedPlayer == null) {
+        //     double dist = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
+        //     if (dist <= currentTokenSize / 2.0) isHovered = true;
+        // }
+
+        context.drawTexture(
+                RenderPipelines.GUI_TEXTURED, 
+                TOKEN_TEXTURE,
+                x, y,
+                0f, 0f,
+                currentTokenSize, currentTokenSize,
+                currentTokenSize, currentTokenSize
+        );
+
+
+
+        
+    }
+
+    public void drawText(DrawContext context, int x, int y, int size, int mouseX, int mouseY, PlayerToken player){
+        float referenceSize = 64.0f; 
+        float scale = size / referenceSize;
+
+        Matrix3x2fStack matrices = context.getMatrices();
+        matrices.pushMatrix();
+
+        float centerX = x + (size / 2.0f);
+        
+
+        float paddingY = size * 0.05f; 
+        float anchorY = y + paddingY;
+
+        matrices.translate(centerX, anchorY);
+        
+        matrices.scale(scale, scale);
+
+        Text name = Text.of(player.name);
+        int nameW = this.textRenderer.getWidth(name);
+        int textX = -nameW / 2;
+        int textY = 0;
+        context.drawTextWithShadow(this.textRenderer, name, textX , textY, 0xFFFFAA00);
+        matrices.popMatrix();
     }
 
 
@@ -188,6 +252,16 @@ public class GrimoireScreen extends Screen {
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (SttkClient.OPEN_GRIMOIRE_KEY.matchesKey(keyCode, scanCode)) {
+            this.close();
+            return true;   
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
 
