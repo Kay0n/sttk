@@ -8,11 +8,15 @@ import net.minecraft.client.util.InputUtil;
 import online.refract.client.gui.GrimoireScreen;
 
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 
 public class SttkClient implements ClientModInitializer {
     
+    public static final String MOD_ID = "sttk";
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static KeyBinding OPEN_GRIMOIRE_KEY;
 
     

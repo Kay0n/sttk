@@ -1,4 +1,3 @@
-
 package online.refract.client.gui;
 
 import net.minecraft.client.MinecraftClient;
@@ -7,9 +6,11 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import online.refract.Sttk;
 import online.refract.client.SttkClient;
+import online.refract.client.gui.modals.TokenModal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,20 +19,17 @@ import org.joml.Matrix3x2fStack;
 
 public class GrimoireScreen extends Screen {
 
-    private static final Identifier TOKEN_TEXTURE = Identifier.of("sttk", "textures/gui/token-greyscale.png");
 
-    private final List<PlayerToken> players = new ArrayList<>();
-    private PlayerToken selectedPlayer = null;
+    private static final float BASE_RESOLUTION_HEIGHT = 540f * 0.64f;
 
-    private static final int MAX_TOKEN_SIZE = 400; // Never bigger than this
-    private static final int TOKEN_MARGIN = 1;    // Pixels of space between tokens
-    private static final int SCREEN_PADDING = 1; // Pixels from screen edge to token edge
 
-    private int currentTokenSize = 32;
-    private int currentLayoutRadius = 100;
+    private final ArrayList<PlayerToken> players = new ArrayList<>();
+    private final ArrayList<ButtonWidget> globalButtons = new ArrayList<>();
 
-    private final List<ButtonWidget> globalButtons = new ArrayList<>();
-    private final List<ButtonWidget> popupButtons = new ArrayList<>();
+    private final TokenRenderer tokenRenderer = new TokenRenderer();
+    private final TokenModal tokenModal = new TokenModal();
+
+
 
     public GrimoireScreen() {
         super(Text.of("Grimoire"));
@@ -40,39 +38,60 @@ public class GrimoireScreen extends Screen {
         }
     }
 
+
+
     @Override
     protected void init() {
         this.globalButtons.clear();
-        this.popupButtons.clear();
-        this.selectedPlayer = null;
         setupGlobalButtons();
     }
 
 
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        
 
-        calculateTokenLayout(); 
-
-        drawTokenCircle(context, mouseX, mouseY);
-
-        if (selectedPlayer != null) {
-            drawTokenModal(context);
-        }
-
-        super.render(context, mouseX, mouseY, delta);
+    private float getDynamicScale() {
+        int physHeight = MinecraftClient.getInstance().getWindow().getFramebufferHeight();
+        if (physHeight == 0) return 1.0f;
+        return physHeight / BASE_RESOLUTION_HEIGHT;
+    }
+    private int getVirtualWidth() {
+        return (int) (MinecraftClient.getInstance().getWindow().getFramebufferWidth() / getDynamicScale());
+    }
+    private int getVirtualHeight() {
+        return (int) (MinecraftClient.getInstance().getWindow().getFramebufferHeight() / getDynamicScale());
     }
 
-    
 
 
-    // ====== Global Buttons ======
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        // scale matrix to bypass gui scale
+        float dynamicScale = getDynamicScale();
+        double guiScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+        int virtualMouseX = (int)((mouseX * guiScale) / dynamicScale);
+        int virtualMouseY = (int)((mouseY * guiScale) / dynamicScale);
+        context.getMatrices().pushMatrix();
+        float matrixScale = (float) (dynamicScale / guiScale);
+        context.getMatrices().scale(matrixScale, matrixScale);
+
+        for (ButtonWidget btn : globalButtons) {
+            btn.render(context, virtualMouseX, virtualMouseY, delta);
+        }
+
+        tokenRenderer.calculateTokenLayout(players.size(), getVirtualWidth(), getVirtualHeight());
+        tokenRenderer.drawTokenCircle(context, textRenderer, players, virtualMouseX, virtualMouseY, getVirtualWidth(), getVirtualHeight());
+
+        tokenModal.renderModal(context, textRenderer, virtualMouseX, virtualMouseY, delta, getVirtualWidth(), getVirtualHeight());
+
+        context.getMatrices().popMatrix();
+    }
+
+
+
     private void setupGlobalButtons() {
         int btnWidth = 70;
-        int btnHeight = 20;
-        int padding = 4;
-        int x = 0 + padding;
+        int padding = 2;
+        int screenWidth = getVirtualWidth(); 
+        int x = padding;
         int y = padding;
         int gap = 22;
         
@@ -81,163 +100,49 @@ public class GrimoireScreen extends Screen {
         addGlobalBtn("☁️ Evening", x, y + gap*2, "Action: Evening");
         addGlobalBtn("🔆 Day", x, y + gap*3, "Action: Day");
 
-        addGlobalBtn("⏳ Timer", x + this.width - btnWidth - padding * 2, y, "Action: Timer");
-        addGlobalBtn("☰ Order",(x + this.width - btnWidth - (padding * 2)), y + gap, "Action: Rearrange");
-        addGlobalBtn("🔄 Reset", (x + this.width - btnWidth - (padding * 2)), y + gap*2, "Action: Reset Scores");
+        addGlobalBtn("⏳ Timer", screenWidth - btnWidth - padding * 2, y, "Action: Timer");
+        addGlobalBtn("☰ Order",(screenWidth - btnWidth - (padding * 2)), y + gap, "Action: Order");
+        addGlobalBtn("🔄 Reset", (screenWidth - btnWidth - (padding * 2)), y + gap*2, "Action: Reset Scores");
     }
+
 
 
     private void addGlobalBtn(String label, int x, int y, String debugMsg) {
         ButtonWidget btn = ButtonWidget.builder(Text.of(label), b -> debug(debugMsg))
                 .dimensions(x, y, 70, 20).build();
-        this.addDrawableChild(btn);
         this.globalButtons.add(btn);
     }
 
+    
 
-
-
-
-    // ====== Popup Modal Interface ======
-    private void drawTokenModal(DrawContext context) {
-        context.fillGradient(0, 0, this.width, this.height, 0x50000000, 0x50000000);
-        int w = 140; int h = 100;
-        int x = (this.width / 2) - (w/2);
-        int y = (this.height / 2) - (h/2);
-        context.fill(x, y, x + w, y + h, 0xFF202020);
-        context.drawBorder(x, y, w, h, 0xFFFFFFFF);
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.of(selectedPlayer.name), this.width/2, y + 6, 0xFFFFFFFF);
-        ButtonWidget.builder(Text.of("a"), b -> debug("a"))
-                .dimensions(x, y, 50, 20).build();
-    }
-
-
-
-
-    // ====== Token and Text Rendering ======
-    private void calculateTokenLayout() {
-        if (players.size() == 0) return;
-
-        int maxScreenTokenSize = MAX_TOKEN_SIZE / MinecraftClient.getInstance().getWindow().getScaleFactor();
-
-        double maxScreenRadius = (Math.min(this.width, this.height) / 2.0) - SCREEN_PADDING;
-
-        if (players.size() == 1) {
-            this.currentTokenSize = maxScreenTokenSize;
-            this.currentLayoutRadius = 0;
-            return;
-        }
-
-        double sinN = Math.sin(Math.PI / players.size());
-        double maxFeasibleSize = (2 * maxScreenRadius * sinN - TOKEN_MARGIN) / (1 + sinN);
-
-        int calculatedSize = (int) Math.min(maxScreenTokenSize, maxFeasibleSize);
-        this.currentTokenSize = Math.max(10, calculatedSize); // 10 is a sanity "absolute minimum" so it doesn't vanish        // 4. Back-calculate the Layout Radius
-
-        this.currentLayoutRadius = (int) (maxScreenRadius - (this.currentTokenSize / 2.0));
-        
-        if (this.currentLayoutRadius < 0) this.currentLayoutRadius = 0;
-    }
-
-
-    private void drawTokenCircle(DrawContext context, int mouseX, int mouseY) {
-        if (players.isEmpty()) return;
-
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
-
-        double startAngle = -Math.PI / 2; // first token at top
-
-        for (int i = 0; i < players.size(); i++) {
-            PlayerToken player = players.get(i);
-
-            double angle = startAngle + (i * (2 * Math.PI / players.size()));
-
-            int x = (int) (centerX + currentLayoutRadius * Math.cos(angle));
-            int y = (int) (centerY + currentLayoutRadius * Math.sin(angle));
-
-            player.renderX = x;
-            player.renderY = y;
-
-            int drawX = x - (currentTokenSize / 2);
-            int drawY = y - (currentTokenSize / 2);
-
-            drawToken(context, drawX, drawY, currentTokenSize, mouseX, mouseY, player);
-        }
-
-        for (int i = 0; i < players.size(); i++) {
-            PlayerToken player = players.get(i);
-
-            int drawX = player.renderX - (currentTokenSize / 2);
-            int drawY = player.renderY - (currentTokenSize / 2);
-
-            drawText(context, drawX, drawY, currentTokenSize, mouseX, mouseY, player);
-        }
-    }
-
-
-    private void drawToken(DrawContext context, int x, int y, int size, int mouseX, int mouseY, PlayerToken player) {
-        // boolean isHovered = false;
-        // if (selectedPlayer == null) {
-        //     double dist = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
-        //     if (dist <= currentTokenSize / 2.0) isHovered = true;
-        // }
-
-        context.drawTexture(
-                RenderPipelines.GUI_TEXTURED, 
-                TOKEN_TEXTURE,
-                x, y,
-                0f, 0f,
-                currentTokenSize, currentTokenSize,
-                currentTokenSize, currentTokenSize
-        );
-    }
-
-
-    public void drawText(DrawContext context, int x, int y, int size, int mouseX, int mouseY, PlayerToken player){
-        float referenceSize = 64.0f; 
-        float scale = size / referenceSize;
-
-        Matrix3x2fStack matrices = context.getMatrices();
-        matrices.pushMatrix();
-
-        float centerX = x + (size / 2.0f);
-        float paddingY = size * 0.05f; 
-        float anchorY = y + paddingY;
-
-        matrices.translate(centerX, anchorY);
-        matrices.scale(scale, scale);
-
-        Text name = Text.of(player.name);
-        int nameW = this.textRenderer.getWidth(name);
-        int textX = -nameW / 2;
-        int textY = 0;
-        context.drawTextWithShadow(this.textRenderer, name, textX , textY, 0xFFFFAA00);
-
-        matrices.popMatrix();
-    }
-
-
-
-
-
-    // ====== Input Handling ======
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (selectedPlayer != null) return super.mouseClicked(mouseX, mouseY, button);
+        double mcScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+        float dynamicScale = getDynamicScale();
+        double virtualX = (mouseX * mcScale) / dynamicScale;
+        double virtualY = (mouseY * mcScale) / dynamicScale;
 
-        if (button == 0) {
-            for (PlayerToken player : players) {
-                double distFromToken = Math.sqrt(Math.pow(mouseX - player.renderX, 2) + Math.pow(mouseY - player.renderY, 2));
-                if (distFromToken <= (currentTokenSize / 2.0)) {
-                    this.selectedPlayer = player;
-                    return true;
-                }
-            }
-            this.selectedPlayer = null;
+        // global buttons
+        for (ButtonWidget btn : globalButtons) {
+            if (btn.mouseClicked(virtualX, virtualY, button)) return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+
+        // token modal
+        if (tokenModal.handleModalClicked((int) virtualX, (int) virtualY, button, getVirtualWidth(), getVirtualHeight())){
+            return true;
+        } 
+
+        // token button
+        PlayerToken selectedPlayer = tokenRenderer.handleTokenClick(players, virtualX, virtualY, button);
+        if (selectedPlayer != null) {
+            tokenModal.openModal(selectedPlayer, getVirtualWidth(), getVirtualHeight());
+            return true;
+        }
+
+
+        return false; 
     }
+
 
 
     @Override
@@ -247,8 +152,14 @@ public class GrimoireScreen extends Screen {
             return true;   
         }
 
+        if (tokenModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
+
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
+
+
+
+
 
 
 
@@ -260,11 +171,4 @@ public class GrimoireScreen extends Screen {
     }
     
 
-    private static class PlayerToken {
-        String name, username;
-        int renderX, renderY;
-        public PlayerToken(int id, String name, String username) {
-            this.name = name; this.username = username;
-        }
-    }
 }
