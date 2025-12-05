@@ -10,6 +10,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import online.refract.Sttk;
 import online.refract.client.SttkClient;
+import online.refract.client.gui.modals.OrderModal;
 import online.refract.client.gui.modals.TokenModal;
 
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ public class GrimoireScreen extends Screen {
 
     private final TokenRenderer tokenRenderer = new TokenRenderer();
     private final TokenModal tokenModal = new TokenModal();
+    private final OrderModal orderModal = new OrderModal();
+
 
 
 
@@ -39,7 +42,7 @@ public class GrimoireScreen extends Screen {
     }
 
 
-
+    
     @Override
     protected void init() {
         this.globalButtons.clear();
@@ -81,7 +84,8 @@ public class GrimoireScreen extends Screen {
         tokenRenderer.drawTokenCircle(context, textRenderer, players, virtualMouseX, virtualMouseY, getVirtualWidth(), getVirtualHeight());
 
         tokenModal.renderModal(context, textRenderer, virtualMouseX, virtualMouseY, delta, getVirtualWidth(), getVirtualHeight());
-
+        orderModal.render(context, textRenderer, virtualMouseX, virtualMouseY, delta, getVirtualWidth(), getVirtualHeight());
+        
         context.getMatrices().popMatrix();
     }
 
@@ -127,10 +131,13 @@ public class GrimoireScreen extends Screen {
             if (btn.mouseClicked(virtualX, virtualY, button)) return true;
         }
 
-        // token modal
+        // modals
         if (tokenModal.handleModalClicked((int) virtualX, (int) virtualY, button, getVirtualWidth(), getVirtualHeight())){
             return true;
         } 
+        if (orderModal.mouseClicked((int) virtualX, (int) virtualY, button, getVirtualWidth(), getVirtualHeight())){
+            return true;
+        }
 
         // token button
         PlayerToken selectedPlayer = tokenRenderer.handleTokenClick(players, virtualX, virtualY, button);
@@ -139,8 +146,21 @@ public class GrimoireScreen extends Screen {
             return true;
         }
 
-
         return false; 
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        double mcScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+        float dynamicScale = getDynamicScale();
+        double virtualX = (mouseX * mcScale) / dynamicScale;
+        double virtualY = (mouseY * mcScale) / dynamicScale;
+
+        if (orderModal.mouseReleased((int) virtualX, (int) virtualY, button, getVirtualWidth(), getVirtualHeight())){
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -153,6 +173,7 @@ public class GrimoireScreen extends Screen {
         }
 
         if (tokenModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
+        if (orderModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
 
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
@@ -166,8 +187,14 @@ public class GrimoireScreen extends Screen {
 
     // ====== Utils ======
     private void debug(String msg) {
-        if (client != null && client.player != null) 
+        if (client != null && client.player != null) {
             client.player.sendMessage(Text.of("§b[Grimoire] §f" + msg), false);
+            if (msg == "Action: Order") {
+                orderModal.openModal(players);
+            }
+        }
+            
+
     }
     
 

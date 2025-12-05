@@ -19,6 +19,7 @@ public class TokenModal {
 
     private PlayerToken selectedPlayer = null;
     private final List<ButtonWidget> popupButtons = new ArrayList<>();
+    private boolean open = false;
 
 
 
@@ -42,6 +43,7 @@ public class TokenModal {
     public void openModal(PlayerToken player, int w, int h) {
         this.selectedPlayer = player;
         this.popupButtons.clear();
+        this.open = true;
 
         int centerX = w / 2;
         int centerY = h / 2;
@@ -61,6 +63,7 @@ public class TokenModal {
     public void closeModal() {
         this.selectedPlayer = null;
         this.popupButtons.clear();
+        this.open = false;
     }
 
 
@@ -105,7 +108,7 @@ public class TokenModal {
 
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers){
-        if (keyCode == 256 && selectedPlayer != null) { 
+        if (keyCode == 256 && this.open) { 
             closeModal();
             return true;
         }
