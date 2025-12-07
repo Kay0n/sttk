@@ -47,6 +47,8 @@ public class GrimoireScreen extends Screen {
     protected void init() {
         this.globalButtons.clear();
         setupGlobalButtons();
+        tokenModal.init();
+        orderModal.init();
     }
 
 
@@ -148,6 +150,8 @@ public class GrimoireScreen extends Screen {
 
         return false; 
     }
+
+
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {

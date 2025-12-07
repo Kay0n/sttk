@@ -18,10 +18,15 @@ public class TokenModal {
     private static final int MODAL_HEIGHT = 150;    
 
     private PlayerToken selectedPlayer = null;
-    private final List<ButtonWidget> popupButtons = new ArrayList<>();
+    private final List<ButtonWidget> buttons = new ArrayList<>();
     private boolean open = false;
 
 
+    public void init() {
+        this.selectedPlayer = null;
+        this.buttons.clear();
+        this.open = false;
+    }
 
     public void renderModal(DrawContext context, TextRenderer textRenderer, int virtualMouseX, int virtualMouseY, float delta, int w, int h) {
         if (selectedPlayer == null){ return; }
@@ -33,7 +38,7 @@ public class TokenModal {
         context.drawBorder(x, y, MODAL_WIDTH, MODAL_HEIGHT, 0xFFFFFFFF);
         context.drawCenteredTextWithShadow(textRenderer, Text.of(selectedPlayer.name), w / 2, y + 6, 0xFFFFFFFF);
         
-        for (ButtonWidget btn : popupButtons) {
+        for (ButtonWidget btn : buttons) {
             btn.render(context, virtualMouseX, virtualMouseY, delta);
         }
     }
@@ -42,7 +47,7 @@ public class TokenModal {
 
     public void openModal(PlayerToken player, int w, int h) {
         this.selectedPlayer = player;
-        this.popupButtons.clear();
+        this.buttons.clear();
         this.open = true;
 
         int centerX = w / 2;
@@ -62,7 +67,7 @@ public class TokenModal {
 
     public void closeModal() {
         this.selectedPlayer = null;
-        this.popupButtons.clear();
+        this.buttons.clear();
         this.open = false;
     }
 
@@ -77,33 +82,38 @@ public class TokenModal {
             }
         }).dimensions(x, y, 120, 20).build();
 
-        this.popupButtons.add(btn);
+        this.buttons.add(btn);
     }
 
 
+    
     public boolean handleModalClicked(int virtualX, int virtualY, int button, int virtualWidth, int virtualHeight) {
-        if (selectedPlayer != null) {
-            for (ButtonWidget btn : popupButtons) {
-                if (btn.mouseClicked(virtualX, virtualY, button)){
-                    closeModal();
-                    return true;
-                } 
-            }
+        if (selectedPlayer == null) { return false; }
 
-            int modalX = (virtualWidth / 2) - (MODAL_WIDTH / 2);
-            int modalY = (virtualHeight / 2) - (MODAL_HEIGHT / 2);
-            
-            boolean isMouseOver = 
-                virtualX >= modalX && virtualX <= modalX + MODAL_WIDTH &&
-                virtualY >= modalY && virtualY <= modalY + MODAL_HEIGHT;
-
-            if (!isMouseOver) {
+        for (ButtonWidget btn : buttons) {
+            if (btn.mouseClicked(virtualX, virtualY, button)){
                 closeModal();
-                return true; 
-            }
-            
+                return true;
+            } 
         }
+
+        if (!isMouseOver(virtualX, virtualY, virtualWidth, virtualHeight)) {
+            closeModal();
+            return true; 
+        }
+            
         return false;
+    }
+
+
+
+    private boolean isMouseOver(int mx, int my, int virtualWidth, int virtualHeight) {
+        int modalX = (virtualWidth / 2) - (MODAL_WIDTH / 2);
+        int modalY = (virtualHeight / 2) - (MODAL_HEIGHT / 2);
+        
+        return 
+            mx >= modalX && mx <= modalX + MODAL_WIDTH &&
+            my >= modalY && my <= modalY + MODAL_HEIGHT;
     }
 
 
