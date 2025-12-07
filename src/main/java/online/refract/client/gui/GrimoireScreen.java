@@ -1,22 +1,17 @@
 package online.refract.client.gui;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import online.refract.Sttk;
 import online.refract.client.SttkClient;
 import online.refract.client.gui.modals.OrderModal;
 import online.refract.client.gui.modals.TokenModal;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import org.joml.Matrix3x2fStack;
 
 public class GrimoireScreen extends Screen {
 

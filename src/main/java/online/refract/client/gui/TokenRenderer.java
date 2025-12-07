@@ -3,7 +3,6 @@ package online.refract.client.gui;
 import java.util.ArrayList;
 
 import org.jetbrains.annotations.Nullable;
-import online.refract.client.SttkClient;
 
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.RenderPipelines;
