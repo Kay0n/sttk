@@ -48,6 +48,13 @@ public class OrderModal {
 
 
 
+    public void init() {
+        this.open = false;
+        this.draggingIndex = -1;
+        this.workingList = null;
+        this.originalList = null;
+    }
+
     public void openModal(ArrayList<PlayerToken> tokens) {
         this.originalList = tokens;
         this.workingList = new ArrayList<>(tokens); 
@@ -58,10 +65,7 @@ public class OrderModal {
 
 
     public void closeModal() {
-        this.open = false;
-        this.draggingIndex = -1;
-        this.workingList = null;
-        this.originalList = null;
+        this.init();
     }
 
 
@@ -114,7 +118,7 @@ public class OrderModal {
     private void applyDragLiveSwap(int mouseX, int mouseY) {
         if (draggingIndex == -1) return;
 
-        int hoverIndex = getIndexAtPosition(mouseX, mouseY);
+        int hoverIndex = getIndexAtPosition(mouseX, mouseY, true);
         if (hoverIndex != -1 && hoverIndex != draggingIndex && hoverIndex < workingList.size()) {
             Collections.swap(workingList, draggingIndex, hoverIndex);
             draggingIndex = hoverIndex;
@@ -219,7 +223,7 @@ public class OrderModal {
             return true;
         }
 
-        int index = getIndexAtPosition(mx, my);
+        int index = getIndexAtPosition(mx, my, false);
         if (index != -1) {
             draggingIndex = index;
             
@@ -234,10 +238,12 @@ public class OrderModal {
             return true;
         }
 
-        if (insideModal(mx, my)) return true;
+        if (!isMouseOver(mx, my)){
+            closeModal();
+            return true;
+        }
 
-        closeModal();
-        return true;
+        return false;
     }
 
 
@@ -265,20 +271,23 @@ public class OrderModal {
 
 
 
-    private boolean insideModal(int mx, int my) {
+    private boolean isMouseOver(int mx, int my) {
         return mx >= modalX && mx <= modalX + modalW &&
                my >= modalY && my <= modalY + modalH;
     }
 
 
 
-    private int getIndexAtPosition(int mx, int my) {
+    private int getIndexAtPosition(int mx, int my, boolean ignoreX) {
         if (!open || currentScale == 0) return -1;
 
-        // float lx = (mx - modalX) / currentScale;
+        float lx = (mx - modalX) / currentScale;
         float ly = (my - modalY) / currentScale;
 
-        // if (lx < 0 || lx > BASE_WIDTH) return -1; // ignore x axis for easier dragging
+        if (!ignoreX) {
+            if (lx < 0 || lx > BASE_WIDTH) return -1;
+        }
+
 
         float listY = ly - (PADDING + HEADER_HEIGHT);
         if (listY < 0) return -1;
