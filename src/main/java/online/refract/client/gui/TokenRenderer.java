@@ -23,10 +23,10 @@ public class TokenRenderer {
 
 
 
-    public void calculateTokenLayout(int playerCount, int virtualWidth, int virtualHeight) {
+    public void calculateTokenLayout(int playerCount, int width, int height) {
         if (playerCount == 0) return;
 
-        double maxScreenRadius = (Math.min(virtualWidth, virtualHeight) / 2.0) - SCREEN_PADDING;
+        double maxScreenRadius = (Math.min(width, height) / 2.0) - SCREEN_PADDING;
 
         if (playerCount == 1) {
             currentTokenSize = MAX_TOKEN_SIZE;
@@ -46,7 +46,7 @@ public class TokenRenderer {
 
 
 
-    public void drawTokenCircle(DrawContext context, TextRenderer textRenderer, ArrayList<PlayerToken> players, int mouseX, int mouseY, int virtualWidth, int virtualHeight) {
+    public void drawTokenCircle(DrawContext context, TextRenderer textRenderer, ArrayList<PlayerToken> players, int virtualWidth, int virtualHeight) {
         if (players.isEmpty()) return;
 
         int centerX = virtualWidth / 2;
@@ -65,37 +65,37 @@ public class TokenRenderer {
             int drawX = x - (currentTokenSize / 2);
             int drawY = y - (currentTokenSize / 2);
 
-            drawToken(context, player, drawX, drawY, currentTokenSize, mouseX, mouseY);
+            drawToken(context, player, drawX, drawY, currentTokenSize);
         }
 
         for (int i = 0; i < players.size(); i++) {
             PlayerToken player = players.get(i);
             int drawX = player.renderX - (currentTokenSize / 2);
             int drawY = player.renderY - (currentTokenSize / 2);
-            drawNames(context, textRenderer, player, drawX, drawY, currentTokenSize, mouseX, mouseY);
+            drawNames(context, textRenderer, player, drawX, drawY, currentTokenSize);
         }
     }
 
 
 
-    public void drawToken(DrawContext context, PlayerToken player, int x, int y, int size, int mouseX, int mouseY) {
+    public void drawToken(DrawContext context, PlayerToken player, int x, int y, int size) {
         context.drawTexture(
                 RenderPipelines.GUI_TEXTURED, 
                 TOKEN_TEXTURE,
                 x, y,
                 0f, 0f,
-                currentTokenSize, currentTokenSize,
-                currentTokenSize, currentTokenSize,
+                size, size,
+                size, size,
                 0xAAFFFFFF
         );
     }
 
 
 
-    public void drawNames(DrawContext context, TextRenderer textRenderer, PlayerToken player, int x, int y, int size, int mouseX, int mouseY){
+    public void drawNames(DrawContext context, TextRenderer textRenderer, PlayerToken player, int x, int y, int size){
         Text name = Text.of(player.name);
         int nameW = textRenderer.getWidth(name);
-        int textX = x + (currentTokenSize / 2) - (nameW / 2);
+        int textX = x + (size / 2) - (nameW / 2);
         int textY = y + 4;
         context.drawTextWithShadow(textRenderer, name, textX , textY, 0xFFFFAA00);
     }

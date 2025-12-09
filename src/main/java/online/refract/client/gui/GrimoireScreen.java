@@ -1,30 +1,36 @@
 package online.refract.client.gui;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import online.refract.Sttk;
+import online.refract.client.ClientActionHandler;
 import online.refract.client.SttkClient;
+import online.refract.client.gui.GuiScale.MouseCoords;
 import online.refract.client.gui.modals.OrderModal;
+import online.refract.client.gui.modals.ResetModal;
+import online.refract.client.gui.modals.TimerModal;
 import online.refract.client.gui.modals.TokenModal;
 
 import java.util.ArrayList;
 
 
+
 public class GrimoireScreen extends Screen {
 
 
-    private static final float BASE_RESOLUTION_HEIGHT = 540f * 0.64f;
-
+    private final ClientActionHandler actionHandler = new ClientActionHandler();
 
     private final ArrayList<PlayerToken> players = new ArrayList<>();
     private final ArrayList<ButtonWidget> globalButtons = new ArrayList<>();
-
     private final TokenRenderer tokenRenderer = new TokenRenderer();
-    private final TokenModal tokenModal = new TokenModal();
-    private final OrderModal orderModal = new OrderModal();
+
+    private final TokenModal tokenModal = new TokenModal(actionHandler);
+    private final OrderModal orderModal = new OrderModal(actionHandler);
+    private final ResetModal resetModal = new ResetModal(actionHandler);
+    private final TimerModal timerModal = new TimerModal(actionHandler);
+
 
 
 
@@ -42,48 +48,36 @@ public class GrimoireScreen extends Screen {
     protected void init() {
         this.globalButtons.clear();
         setupGlobalButtons();
-        tokenModal.init();
-        orderModal.init();
-    }
-
-
-
-    private float getDynamicScale() {
-        int physHeight = MinecraftClient.getInstance().getWindow().getFramebufferHeight();
-        if (physHeight == 0) return 1.0f;
-        return physHeight / BASE_RESOLUTION_HEIGHT;
-    }
-    private int getVirtualWidth() {
-        return (int) (MinecraftClient.getInstance().getWindow().getFramebufferWidth() / getDynamicScale());
-    }
-    private int getVirtualHeight() {
-        return (int) (MinecraftClient.getInstance().getWindow().getFramebufferHeight() / getDynamicScale());
+        resetModal.init(this.width, this.height);
+        orderModal.init(this.width, this.height);
+        tokenModal.init(this.width, this.height);
+        timerModal.init(this.width, this.height);
+        super.init();
     }
 
 
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // scale matrix to bypass gui scale
-        float dynamicScale = getDynamicScale();
-        double guiScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        int virtualMouseX = (int)((mouseX * guiScale) / dynamicScale);
-        int virtualMouseY = (int)((mouseY * guiScale) / dynamicScale);
-        context.getMatrices().pushMatrix();
-        float matrixScale = (float) (dynamicScale / guiScale);
-        context.getMatrices().scale(matrixScale, matrixScale);
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {   
+        
+        boolean modalsAreOpen = resetModal.isOpen() || orderModal.isOpen() || tokenModal.isOpen();
 
         for (ButtonWidget btn : globalButtons) {
-            btn.render(context, virtualMouseX, virtualMouseY, delta);
+            btn.active = !modalsAreOpen;
+            btn.render(context, mouseX, mouseY, delta);
         }
 
-        tokenRenderer.calculateTokenLayout(players.size(), getVirtualWidth(), getVirtualHeight());
-        tokenRenderer.drawTokenCircle(context, textRenderer, players, virtualMouseX, virtualMouseY, getVirtualWidth(), getVirtualHeight());
+        GuiScale.disableGuiScale(context);
 
-        tokenModal.renderModal(context, textRenderer, virtualMouseX, virtualMouseY, delta, getVirtualWidth(), getVirtualHeight());
-        orderModal.render(context, textRenderer, virtualMouseX, virtualMouseY, delta, getVirtualWidth(), getVirtualHeight());
-        
-        context.getMatrices().popMatrix();
+        tokenRenderer.calculateTokenLayout(players.size(), GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
+        tokenRenderer.drawTokenCircle(context, textRenderer, players, GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
+
+        GuiScale.enableGuiScale(context);
+
+        orderModal.render(context, textRenderer, mouseX, mouseY, delta);
+        resetModal.render(context, textRenderer, mouseX, mouseY, delta);
+        tokenModal.render(context, textRenderer, mouseX, mouseY, delta);
+        timerModal.render(context, textRenderer, mouseX, mouseY, delta);
     }
 
 
@@ -91,25 +85,25 @@ public class GrimoireScreen extends Screen {
     private void setupGlobalButtons() {
         int btnWidth = 70;
         int padding = 2;
-        int screenWidth = getVirtualWidth(); 
+        int screenWidth = this.width; 
         int x = padding;
         int y = padding;
         int gap = 22;
         
-        addGlobalBtn("✋ Vote", x, y, "Action: Vote");
-        addGlobalBtn("🌘 Night", x, y + gap, "Action: Night");
-        addGlobalBtn("☁️ Evening", x, y + gap*2, "Action: Evening");
-        addGlobalBtn("🔆 Day", x, y + gap*3, "Action: Day");
+        addGlobalBtn("✋ Vote", x, y, () -> actionHandler.startVote());
+        addGlobalBtn("🌘 Night", x, y + gap, () -> actionHandler.setNight());
+        addGlobalBtn("☁ Evening", x, y + gap*2, () -> actionHandler.setEvening());
+        addGlobalBtn("🔆 Day", x, y + gap*3, () -> actionHandler.setDay());
 
-        addGlobalBtn("⏳ Timer", screenWidth - btnWidth - padding * 2, y, "Action: Timer");
-        addGlobalBtn("☰ Order",(screenWidth - btnWidth - (padding * 2)), y + gap, "Action: Order");
-        addGlobalBtn("🔄 Reset", (screenWidth - btnWidth - (padding * 2)), y + gap*2, "Action: Reset Scores");
+        addGlobalBtn("⏳ Timer", screenWidth - btnWidth - padding * 2, y, () -> timerModal.openModal());
+        addGlobalBtn("☰ Order",(screenWidth - btnWidth - (padding * 2)), y + gap, () -> orderModal.openModal(players));
+        addGlobalBtn("🔄 Reset", (screenWidth - btnWidth - (padding * 2)), y + gap*2, () -> resetModal.openModal());
     }
 
 
 
-    private void addGlobalBtn(String label, int x, int y, String debugMsg) {
-        ButtonWidget btn = ButtonWidget.builder(Text.of(label), b -> debug(debugMsg))
+    private void addGlobalBtn(String label, int x, int y, Runnable action) {
+        ButtonWidget btn = ButtonWidget.builder(Text.of(label), b -> action.run())
                 .dimensions(x, y, 70, 20).build();
         this.globalButtons.add(btn);
     }
@@ -118,31 +112,30 @@ public class GrimoireScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        double mcScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        float dynamicScale = getDynamicScale();
-        double virtualX = (mouseX * mcScale) / dynamicScale;
-        double virtualY = (mouseY * mcScale) / dynamicScale;
 
-        // global buttons
-        for (ButtonWidget btn : globalButtons) {
-            if (btn.mouseClicked(virtualX, virtualY, button)) return true;
-        }
-
-        // modals
-        if (tokenModal.handleModalClicked((int) virtualX, (int) virtualY, button, getVirtualWidth(), getVirtualHeight())){
+        if (tokenModal.mouseClicked((int) mouseX, (int) mouseY, button)){
             return true;
         } 
-        if (orderModal.mouseClicked((int) virtualX, (int) virtualY, button, getVirtualWidth(), getVirtualHeight())){
+        if (orderModal.mouseClicked((int) mouseX, (int) mouseY, button)){
+            return true;
+        }
+        if(resetModal.mouseClicked((int) mouseX, (int) mouseY, button)){
+            return true;
+        }
+        if(timerModal.mouseClicked((int) mouseX, (int) mouseY, button)){
             return true;
         }
 
-        // token button
-        PlayerToken selectedPlayer = tokenRenderer.handleTokenClick(players, virtualX, virtualY, button);
+        for (ButtonWidget btn : globalButtons) {
+            if (btn.mouseClicked(mouseX, mouseY, button)) return true;
+        }
+        MouseCoords unscaledMouse = GuiScale.getUnscaledMouseCoords(mouseX, mouseY);
+
+        PlayerToken selectedPlayer = tokenRenderer.handleTokenClick(players, unscaledMouse.x(), unscaledMouse.y(), button);
         if (selectedPlayer != null) {
-            tokenModal.openModal(selectedPlayer, getVirtualWidth(), getVirtualHeight());
+            tokenModal.openModal(selectedPlayer);
             return true;
         }
-
         return false; 
     }
 
@@ -150,15 +143,19 @@ public class GrimoireScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        double mcScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        float dynamicScale = getDynamicScale();
-        double virtualX = (mouseX * mcScale) / dynamicScale;
-        double virtualY = (mouseY * mcScale) / dynamicScale;
-
-        if (orderModal.mouseReleased((int) virtualX, (int) virtualY, button, getVirtualWidth(), getVirtualHeight())){
+        if (orderModal.mouseReleased(mouseX, mouseY, button)) {
             return true;
         }
+        return false;
+    }
 
+
+
+    @Override
+    public boolean charTyped(char chr, int modifiers) {
+        if (timerModal.charTyped(chr, modifiers)){
+            return true;
+        }
         return false;
     }
 
@@ -173,28 +170,14 @@ public class GrimoireScreen extends Screen {
 
         if (tokenModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
         if (orderModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
+        if (resetModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
+        if(timerModal.keyPressed(keyCode, scanCode, modifiers)){ return true;}
 
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
 
 
-
-
-
-
-
-    // ====== Utils ======
-    private void debug(String msg) {
-        if (client != null && client.player != null) {
-            client.player.sendMessage(Text.of("§b[Grimoire] §f" + msg), false);
-            if (msg == "Action: Order") {
-                orderModal.openModal(players);
-            }
-        }
-            
-
-    }
     
 
 }

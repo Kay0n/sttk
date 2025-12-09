@@ -3,320 +3,191 @@ package online.refract.client.gui.modals;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.lwjgl.glfw.GLFW;
-
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
+import online.refract.client.ClientActionHandler;
 import online.refract.client.gui.PlayerToken;
 
-public class OrderModal {
+public class OrderModal extends Modal {
 
-    // layout constants
-    private static final int BASE_WIDTH = 160;
+    private static final int BASE_WIDTH = 150;
     private static final int ITEM_HEIGHT = 22;
-    private static final int HEADER_HEIGHT = 25;
-    private static final int FOOTER_HEIGHT = 35;
-    private static final int PADDING = 10;
-
-    // scale limits
-    private static final float MAX_SCALE = 1.5f;
-    private static final float MIN_SCALE = 0.5f;
-
-    // colors
-    private static final int BG_DIM = 0x80000000;
-    private static final int MODAL_BG = 0xFF202020;
-    private static final int MODAL_BORDER = 0xFFFFFFFF;
-    private static final int HOLE_COLOR = 0xFF101010;
-    private static final int BTN_COLOR = 0xFF404040;
-    private static final int BTN_HOVER = 0xFF606060;
-
-    // state
-    private boolean open = false;
+    private static final int LIST_TOP_OFFSET = 25;
+    
     private ArrayList<PlayerToken> originalList;
     private ArrayList<PlayerToken> workingList;
 
     private int draggingIndex = -1;
+    private int dragOffsetY = 0;
+    private int dragOffsetX = 0;
+
     private float currentScale = 1.0f;
 
-    private int dragOffsetX = 0;
-    private int dragOffsetY = 0;
-
-    private int modalX, modalY, modalW, modalH;
-    private int saveBtnY;
-
-
-
-    public void init() {
-        this.open = false;
-        this.draggingIndex = -1;
-        this.workingList = null;
-        this.originalList = null;
+    public OrderModal(ClientActionHandler actionHandler) {
+        super(actionHandler, "Reorder Players", BASE_WIDTH, 0);
     }
 
     public void openModal(ArrayList<PlayerToken> tokens) {
         this.originalList = tokens;
-        this.workingList = new ArrayList<>(tokens); 
-        this.open = true;
+        this.workingList = new ArrayList<>(tokens);
         this.draggingIndex = -1;
+        
+        int listHeight = workingList.size() * ITEM_HEIGHT;
+        int requiredHeight = LIST_TOP_OFFSET + listHeight + BUTTON_HEIGHT + (modalMarginY * 2);
+        this.height = requiredHeight;
+        
+        this.x = (this.screenWidth - this.width) / 2;
+        this.y = (this.screenHeight - this.height) / 2;
+
+        super.openModal(); 
+    }
+    
+    
+    @Override
+    protected void rebuildButtons() {
+        this.layoutRows.clear();
+        this.addButton(createButtonDef(Text.of("Save"), this::saveOrder));
+        super.rebuildButtons();
     }
 
+    @Override
+    public void render(DrawContext context, TextRenderer textRenderer, int mouseX, int mouseY, float delta) {
+        if (!this.open) return;
+
+        drawDimBackground(context);
 
 
-    public void closeModal() {
-        this.init();
-    }
-
-
-
-    public boolean isOpen() { return open; }
-
-
-
-    public void render(DrawContext ctx, TextRenderer tr, int mouseX, int mouseY, float delta, int screenW, int screenH) {
-        if (!open || workingList == null) return;
-
-        calculateLayout(screenW, screenH);
-        applyDragLiveSwap(mouseX, mouseY);
-
-        drawDimBackground(ctx, screenW, screenH);
-
-        ctx.getMatrices().pushMatrix();
-        ctx.getMatrices().translate(modalX, modalY);
-        ctx.getMatrices().scale(currentScale, currentScale);
-
-        drawModalFrame(ctx);
-        drawTitle(ctx, tr);
-        drawPlayerList(ctx, tr);
-        drawSaveButton(ctx, tr, mouseX, mouseY);
-
-        ctx.getMatrices().popMatrix();
-
-        drawFloatingDraggedItem(ctx, tr, mouseX, mouseY);
-    }
-
-
-
-    private void calculateLayout(int screenW, int screenH) {
-        int listH = workingList.size() * ITEM_HEIGHT;
-        int totalH = PADDING + HEADER_HEIGHT + listH + FOOTER_HEIGHT + PADDING;
-
-        float ratio = (float) (screenH - 40) / totalH;
-        currentScale = MathHelper.clamp(ratio, MIN_SCALE, MAX_SCALE);
-
-        modalW = (int) (BASE_WIDTH * currentScale);
-        modalH = (int) (totalH * currentScale);
-        modalX = (screenW - modalW) / 2;
-        modalY = (screenH - modalH) / 2;
-
-        saveBtnY = totalH - FOOTER_HEIGHT;
-    }
-
-
-
-    private void applyDragLiveSwap(int mouseX, int mouseY) {
-        if (draggingIndex == -1) return;
-
-        int hoverIndex = getIndexAtPosition(mouseX, mouseY, true);
-        if (hoverIndex != -1 && hoverIndex != draggingIndex && hoverIndex < workingList.size()) {
-            Collections.swap(workingList, draggingIndex, hoverIndex);
-            draggingIndex = hoverIndex;
+        float maxScreenHeight = this.screenHeight - modalMarginY; 
+        if (this.height > maxScreenHeight) {
+            this.currentScale = maxScreenHeight / (float) this.height;
+        } else {
+            this.currentScale = 1.0f;
         }
+
+        context.getMatrices().pushMatrix();
+        float centerX = this.screenWidth / 2.0f;
+        float centerY = this.screenHeight / 2.0f;
+
+        context.getMatrices().translate(centerX, centerY);
+        context.getMatrices().scale(currentScale, currentScale);
+        context.getMatrices().translate(-centerX, -centerY);
+
+        int scaledMx = getScaledMouseX(mouseX);
+        int scaledMy = getScaledMouseY(mouseY);
+
+        drawModal(context);
+        drawTitle(context, textRenderer);
+        drawContent(context, textRenderer, scaledMx, scaledMy, delta);
+        drawButtons(context, scaledMx, scaledMy, delta);
+
+        context.getMatrices().popMatrix();
     }
 
 
-
-    private void drawDimBackground(DrawContext ctx, int w, int h) {
-        ctx.fillGradient(0, 0, w, h, BG_DIM, BG_DIM);
+    private int getScaledMouseX(double rawMx) {
+        float centerX = this.screenWidth / 2.0f;
+        return (int) ((rawMx - centerX) / currentScale + centerX);
     }
 
-
-
-    private void drawModalFrame(DrawContext ctx) {
-        int totalH = (int) (modalH / currentScale);
-        ctx.fill(0, 0, BASE_WIDTH, totalH, MODAL_BG);
-        ctx.drawBorder(0, 0, BASE_WIDTH, totalH, MODAL_BORDER);
+    private int getScaledMouseY(double rawMy) {
+        float centerY = this.screenHeight / 2.0f;
+        return (int) ((rawMy - centerY) / currentScale + centerY);
     }
 
+    @Override
+    public boolean mouseClicked(int mx, int my, int button) {
+        if (!isOpen()) return false;
 
+        int scaledMx = getScaledMouseX(mx);
+        int scaledMy = getScaledMouseY(my);
 
-    private void drawTitle(DrawContext ctx, TextRenderer tr) {
-        ctx.drawCenteredTextWithShadow(tr, Text.of("Reorder Players"),
-                BASE_WIDTH / 2, PADDING + 4, 0xFFFFFFFF);
-    }
-
-
-
-    private void drawPlayerList(DrawContext ctx, TextRenderer tr) {
-        int startY = PADDING + HEADER_HEIGHT;
-
-        for (int i = 0; i < workingList.size(); i++) {
-            int y = startY + i * ITEM_HEIGHT;
-
-            if (i == draggingIndex) {
-                drawListBlank(ctx, y);
-            } else {
-                drawListItem(ctx, tr, workingList.get(i), y);
-            }
-        }
-    }
-
-
-
-    private void drawListBlank(DrawContext ctx, int y) {
-        ctx.fill(5, y, BASE_WIDTH - 5, y + ITEM_HEIGHT, HOLE_COLOR);
-        ctx.drawBorder(5, y, BASE_WIDTH - 10, ITEM_HEIGHT, 0xFF555555);
-    }
-
-
-
-    private void drawListItem(DrawContext ctx, TextRenderer tr, PlayerToken token, int y) {
-        ctx.drawTextWithShadow(tr, Text.of(token.name), 10, y + 7, 0xFFFFFFFF);
-    }
-
-
-
-    private void drawSaveButton(DrawContext ctx, TextRenderer tr, int mouseX, int mouseY) {
-        boolean hovered = isHoveringSave(mouseX, mouseY);
-        int color = hovered ? BTN_HOVER : BTN_COLOR;
-
-        int btnX = 20;
-        int btnY = saveBtnY;
-        int btnW = BASE_WIDTH - 40;
-        int btnH = 20;
-
-        ctx.fill(btnX, btnY, btnX + btnW, btnY + btnH, color);
-        ctx.drawBorder(btnX, btnY, btnW, btnH, 0xFFAAAAAA);
-        ctx.drawCenteredTextWithShadow(tr, Text.of("Save Order"),
-                BASE_WIDTH / 2, btnY + 6, 0xFFFFFFFF);
-    }
-
-
-
-    private void drawFloatingDraggedItem(DrawContext ctx, TextRenderer tr, int mouseX, int mouseY) {
-        if (draggingIndex == -1) return;
-
-        PlayerToken token = workingList.get(draggingIndex);
-        int fx = mouseX + dragOffsetX;
-        int fy = mouseY + dragOffsetY;
-        int fw = (int) (BASE_WIDTH * currentScale);
-        int fh = (int) (ITEM_HEIGHT * currentScale);
-
-        ctx.fill(fx, fy, fx + fw, fy + fh, 0xFF404040);
-        ctx.drawBorder(fx, fy, fw, fh, 0xFFFFFFFF);
-
-        ctx.getMatrices().pushMatrix();
-        ctx.getMatrices().translate(fx, fy);
-        ctx.getMatrices().scale(currentScale, currentScale);
-        ctx.drawTextWithShadow(tr, Text.of(token.name), 10, 7, 0xFFFFFFFF);
-        ctx.getMatrices().popMatrix();
-    }
-
-
-
-    public boolean mouseClicked(int mx, int my, int button, int w, int h) {
-        if (!open) return false;
-
-        if (isHoveringSave(mx, my)) {
-            saveAndClose();
+        if (super.mouseClicked(scaledMx, scaledMy, button)) {
             return true;
         }
 
-        int index = getIndexAtPosition(mx, my, false);
+        int index = getIndexAtPosition(scaledMx, scaledMy);
         if (index != -1) {
-            draggingIndex = index;
-            
-            float localItemY = (PADDING + HEADER_HEIGHT) + (index * ITEM_HEIGHT);
-            
-            int itemScreenX = modalX;
-            int itemScreenY = modalY + (int)(localItemY * currentScale);
-
-            dragOffsetX = itemScreenX - mx;
-            dragOffsetY = itemScreenY - my;
-
-            return true;
-        }
-
-        if (!isMouseOver(mx, my)){
-            closeModal();
+            this.draggingIndex = index;
+            int itemY = this.y + LIST_TOP_OFFSET + (index * ITEM_HEIGHT);
+            int itemX = this.x;
+            this.dragOffsetY = itemY - scaledMy;
+            this.dragOffsetX = itemX - scaledMx;
             return true;
         }
 
         return false;
     }
 
-
-
-    public boolean mouseReleased(int mx, int my, int button, int w, int h) {
-        if (!open) return false;
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
         if (draggingIndex != -1) {
             draggingIndex = -1;
             return true;
         }
-        return false;
+        return super.mouseReleased(mx, my, button);
     }
 
 
+    @Override
+    protected void drawContent(DrawContext context, TextRenderer textRenderer, int mouseX, int mouseY, float delta) {
+        if (workingList == null) return;
 
-    public boolean keyPressed(int keyCode, int scanCode, int mods) {
-        if (!open) return false;
-
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
-            closeModal();
-            return true;
-        }
-        return false;
-    }
-
-
-
-    private boolean isMouseOver(int mx, int my) {
-        return mx >= modalX && mx <= modalX + modalW &&
-               my >= modalY && my <= modalY + modalH;
-    }
-
-
-
-    private int getIndexAtPosition(int mx, int my, boolean ignoreX) {
-        if (!open || currentScale == 0) return -1;
-
-        float lx = (mx - modalX) / currentScale;
-        float ly = (my - modalY) / currentScale;
-
-        if (!ignoreX) {
-            if (lx < 0 || lx > BASE_WIDTH) return -1;
+        if (draggingIndex != -1) {
+            int hoverIndex = getIndexAtPosition(mouseX, mouseY);
+            if (hoverIndex != -1 && hoverIndex != draggingIndex) {
+                Collections.swap(workingList, draggingIndex, hoverIndex);
+                draggingIndex = hoverIndex;
+            }
         }
 
+        int startX = this.x + modalMarginX;
+        int nameCenterX = this.x + (this.width / 2);
+        int startY = this.y + LIST_TOP_OFFSET;
+        int rowWidth = this.width - (modalMarginX * 2);
 
-        float listY = ly - (PADDING + HEADER_HEIGHT);
-        if (listY < 0) return -1;
+        for (int i = 0; i < workingList.size(); i++) {
+            int itemY = startY + (i * ITEM_HEIGHT);
 
-        int index = (int) (listY / ITEM_HEIGHT);
-        return (index >= 0 && index < workingList.size()) ? index : -1;
+
+            if (i == draggingIndex) {
+                context.fill(startX, itemY, startX + rowWidth, itemY + ITEM_HEIGHT, 0xFF101010);
+                context.drawBorder(startX, itemY, rowWidth, ITEM_HEIGHT, 0xFF555555);
+            } else {
+                context.drawCenteredTextWithShadow(textRenderer, Text.of(workingList.get(i).name), nameCenterX, itemY + 6, 0xFFFFFFFF);
+            }
+        }
+
+        if (draggingIndex != -1) {
+            PlayerToken token = workingList.get(draggingIndex);
+            
+            int dragX = mouseX + dragOffsetX; 
+            int dragY = mouseY + dragOffsetY; 
+
+            context.fill(dragX, dragY, dragX + this.width , dragY + ITEM_HEIGHT, 0xFF404040);
+            context.drawBorder(dragX, dragY, rowWidth, ITEM_HEIGHT, 0xFFFFFFFF);
+            context.drawCenteredTextWithShadow(textRenderer, Text.of(token.name), dragX + (this.width / 2), dragY + 7, 0xFFFFFFFF);
+        }
     }
 
+    private int getIndexAtPosition(int mx, int my) {
+        int listStartX = this.x + modalMarginX;
+        int listWidth = this.width - (modalMarginX * 2);
+        int listStartY = this.y + LIST_TOP_OFFSET;
+        int totalListHeight = workingList.size() * ITEM_HEIGHT;
 
+        if (mx < listStartX || mx > listStartX + listWidth) return -1;
+        if (my < listStartY || my > listStartY + totalListHeight) return -1;
 
-    private boolean isHoveringSave(int mx, int my) {
-        float lx = (mx - modalX) / currentScale;
-        float ly = (my - modalY) / currentScale;
-
-        int bx = 20;
-        int bw = BASE_WIDTH - 40;
-        int bh = 20;
-
-        return lx >= bx && lx <= bx + bw &&
-               ly >= saveBtnY && ly <= saveBtnY + bh;
+        int relativeY = my - listStartY;
+        return relativeY / ITEM_HEIGHT;
     }
 
-    
-
-    private void saveAndClose() {
+    private void saveOrder() {
         if (originalList != null && workingList != null) {
             originalList.clear();
             originalList.addAll(workingList);
+            closeModal();
         }
-        closeModal();
     }
 }

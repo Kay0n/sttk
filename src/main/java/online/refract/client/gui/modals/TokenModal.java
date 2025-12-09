@@ -1,132 +1,54 @@
 package online.refract.client.gui.modals;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import online.refract.client.ClientActionHandler;
 import online.refract.client.gui.PlayerToken;
 
 
 
-public class TokenModal {
+
+public class TokenModal extends Modal{
 
     private static final int MODAL_WIDTH = 140;
-    private static final int MODAL_HEIGHT = 150;    
+    private static final int MODAL_HEIGHT = 145;  
+    
+    protected int MARGIN = 3;
+
 
     private PlayerToken selectedPlayer = null;
-    private final List<ButtonWidget> buttons = new ArrayList<>();
-    private boolean open = false;
 
 
-    public void init() {
-        this.selectedPlayer = null;
-        this.buttons.clear();
-        this.open = false;
+    public TokenModal(ClientActionHandler actionHandler) {
+        super(
+            actionHandler,
+            "", 
+            MODAL_WIDTH, 
+            MODAL_HEIGHT
+        );
     }
 
-    public void renderModal(DrawContext context, TextRenderer textRenderer, int virtualMouseX, int virtualMouseY, float delta, int w, int h) {
-        if (selectedPlayer == null){ return; }
+    @Override
+    public void init(int screenWidth, int screenHeight) {
+        super.init(screenWidth, screenHeight);
 
-        context.fillGradient(0, 0, w, h, 0x50000000, 0x50000000); 
-        int x = (w / 2) - (MODAL_WIDTH / 2);
-        int y = (h / 2) - (MODAL_HEIGHT / 2);
-        context.fill(x, y, x + MODAL_WIDTH, y + MODAL_HEIGHT, 0xFF202020);
-        context.drawBorder(x, y, MODAL_WIDTH, MODAL_HEIGHT, 0xFFFFFFFF);
-        context.drawCenteredTextWithShadow(textRenderer, Text.of(selectedPlayer.name), w / 2, y + 6, 0xFFFFFFFF);
-        
-        for (ButtonWidget btn : buttons) {
-            btn.render(context, virtualMouseX, virtualMouseY, delta);
-        }
+        this.modalMarginX = 10;
+        this.modalMarginY = 10;
+        this.elementMarginX = 5;
+        this.elementMarginY = 1;
+        addButton(createButtonDef(Text.literal("🏠 Home"), () -> actionHandler.homeTeleport(selectedPlayer.name)));
+        addButton(createButtonDef(Text.literal("☠️ Kill/Revive"), () -> actionHandler.kill(selectedPlayer.name)));
+        addButton(createButtonDef(Text.literal("👈 Nominate"), () -> actionHandler.nominate(selectedPlayer.name)));
+        addButton(createButtonDef(Text.literal("🔨 On The Block"), () -> actionHandler.nominate(selectedPlayer.name)));
+        addButton(createButtonDef(Text.literal("✅ Ghost Vote"), () -> actionHandler.nominate(selectedPlayer.name)));
     }
 
 
-
-    public void openModal(PlayerToken player, int w, int h) {
+    public void openModal(PlayerToken player) {
         this.selectedPlayer = player;
-        this.buttons.clear();
-        this.open = true;
-
-        int centerX = w / 2;
-        int centerY = h / 2;
-        
-        int startX = centerX - (120 / 2); 
-        int startY = centerY - (MODAL_HEIGHT / 2) + 20; 
-        int gap = 22;
-
-        addModalBtn("🏠", "Home",          startX, startY,           "Home");
-        addModalBtn("☠️", "Kill/Revive",   startX, startY + gap,     "Kill/Revive");
-        addModalBtn("👈", "Nominate",      startX, startY + gap * 2, "Nominate");
-        addModalBtn("🪢", "On The Block",  startX, startY + gap * 3, "On The Block");
-        addModalBtn("✔️", "Ghost Vote",    startX, startY + gap * 4, "Ghost Vote");
+        this.title = player.name;
+        super.openModal();
     }
-
-
-    public void closeModal() {
-        this.selectedPlayer = null;
-        this.buttons.clear();
-        this.open = false;
-    }
-
-
-    private void addModalBtn(String emoji, String text, int x, int y, String actionName) {
-        Text btnText = Text.literal(emoji + " ")
-                .append(Text.literal(text).formatted(Formatting.BOLD));
-
-        ButtonWidget btn = ButtonWidget.builder(btnText, b -> {
-            if (selectedPlayer != null) {
-                // debug("§b[ST] §f " + selectedPlayer.name + " " + actionName);
-            }
-        }).dimensions(x, y, 120, 20).build();
-
-        this.buttons.add(btn);
-    }
-
-
-    
-    public boolean handleModalClicked(int virtualX, int virtualY, int button, int virtualWidth, int virtualHeight) {
-        if (selectedPlayer == null) { return false; }
-
-        for (ButtonWidget btn : buttons) {
-            if (btn.mouseClicked(virtualX, virtualY, button)){
-                closeModal();
-                return true;
-            } 
-        }
-
-        if (!isMouseOver(virtualX, virtualY, virtualWidth, virtualHeight)) {
-            closeModal();
-            return true; 
-        }
-            
-        return false;
-    }
-
-
-
-    private boolean isMouseOver(int mx, int my, int virtualWidth, int virtualHeight) {
-        int modalX = (virtualWidth / 2) - (MODAL_WIDTH / 2);
-        int modalY = (virtualHeight / 2) - (MODAL_HEIGHT / 2);
-        
-        return 
-            mx >= modalX && mx <= modalX + MODAL_WIDTH &&
-            my >= modalY && my <= modalY + MODAL_HEIGHT;
-    }
-
-
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers){
-        if (keyCode == 256 && this.open) { 
-            closeModal();
-            return true;
-        }
-        return false;
-    }
-
-
-
 
 
 }
+
