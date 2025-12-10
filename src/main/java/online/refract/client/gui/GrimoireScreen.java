@@ -1,9 +1,5 @@
 package online.refract.client.gui;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
 import online.refract.Sttk;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.SttkClient;
@@ -14,6 +10,10 @@ import online.refract.client.gui.modals.TimerModal;
 import online.refract.client.gui.modals.TokenModal;
 
 import java.util.ArrayList;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 
 
@@ -23,7 +23,7 @@ public class GrimoireScreen extends Screen {
     private final ClientActionHandler actionHandler = new ClientActionHandler();
 
     private final ArrayList<PlayerToken> players = new ArrayList<>();
-    private final ArrayList<ButtonWidget> globalButtons = new ArrayList<>();
+    private final ArrayList<Button> globalButtons = new ArrayList<>();
     private final TokenRenderer tokenRenderer = new TokenRenderer();
 
     private final TokenModal tokenModal = new TokenModal(actionHandler);
@@ -36,7 +36,7 @@ public class GrimoireScreen extends Screen {
 
 
     public GrimoireScreen() {
-        super(Text.of("Grimoire"));
+        super(Component.nullToEmpty("Grimoire"));
         for (int i = 0; i < Sttk.SERVER_PLAYER_COUNT; i++) {
             players.add(new PlayerToken(i + 1, "Player " + (i + 1), "User" + (i + 1)));
         }
@@ -58,11 +58,11 @@ public class GrimoireScreen extends Screen {
 
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {   
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {   
         
         boolean modalsAreOpen = resetModal.isOpen() || orderModal.isOpen() || tokenModal.isOpen();
 
-        for (ButtonWidget btn : globalButtons) {
+        for (Button btn : globalButtons) {
             btn.active = !modalsAreOpen;
             btn.render(context, mouseX, mouseY, delta);
         }
@@ -70,14 +70,14 @@ public class GrimoireScreen extends Screen {
         GuiScale.disableGuiScale(context);
 
         tokenRenderer.calculateTokenLayout(players.size(), GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
-        tokenRenderer.drawTokenCircle(context, textRenderer, players, GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
+        tokenRenderer.drawTokenCircle(context, font, players, GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
 
         GuiScale.enableGuiScale(context);
 
-        orderModal.render(context, textRenderer, mouseX, mouseY, delta);
-        resetModal.render(context, textRenderer, mouseX, mouseY, delta);
-        tokenModal.render(context, textRenderer, mouseX, mouseY, delta);
-        timerModal.render(context, textRenderer, mouseX, mouseY, delta);
+        orderModal.render(context, font, mouseX, mouseY, delta);
+        resetModal.render(context, font, mouseX, mouseY, delta);
+        tokenModal.render(context, font, mouseX, mouseY, delta);
+        timerModal.render(context, font, mouseX, mouseY, delta);
     }
 
 
@@ -103,8 +103,8 @@ public class GrimoireScreen extends Screen {
 
 
     private void addGlobalBtn(String label, int x, int y, Runnable action) {
-        ButtonWidget btn = ButtonWidget.builder(Text.of(label), b -> action.run())
-                .dimensions(x, y, 70, 20).build();
+        Button btn = Button.builder(Component.nullToEmpty(label), b -> action.run())
+                .bounds(x, y, 70, 20).build();
         this.globalButtons.add(btn);
     }
 
@@ -126,7 +126,7 @@ public class GrimoireScreen extends Screen {
             return true;
         }
 
-        for (ButtonWidget btn : globalButtons) {
+        for (Button btn : globalButtons) {
             if (btn.mouseClicked(mouseX, mouseY, button)) return true;
         }
         MouseCoords unscaledMouse = GuiScale.getUnscaledMouseCoords(mouseX, mouseY);
@@ -163,8 +163,8 @@ public class GrimoireScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (SttkClient.OPEN_GRIMOIRE_KEY.matchesKey(keyCode, scanCode)) {
-            this.close();
+        if (SttkClient.OPEN_GRIMOIRE_KEY.matches(keyCode, scanCode)) {
+            this.onClose();
             return true;   
         }
 

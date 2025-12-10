@@ -1,22 +1,22 @@
 package online.refract;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 public class SttkPayloads {
 
-    public record ActionPayload(String action, int targetId) implements CustomPayload {
-        public static final Id<ActionPayload> ID = new Id<>(Sttk.id("action"));
-        public static final PacketCodec<RegistryByteBuf, ActionPayload> CODEC = PacketCodec.tuple(
-            PacketCodecs.STRING, ActionPayload::action,
-            PacketCodecs.INTEGER, ActionPayload::targetId,
+    public record ActionPayload(String action, int targetId) implements CustomPacketPayload {
+        public static final Type<ActionPayload> ID = new Type<>(Sttk.id("action"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ActionPayload> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, ActionPayload::action,
+            ByteBufCodecs.INT, ActionPayload::targetId,
             ActionPayload::new
         );
 
         @Override
-        public Id<? extends CustomPayload> getId() { return ID; }
+        public Type<? extends CustomPacketPayload> type() { return ID; }
     }
 
 

@@ -2,10 +2,9 @@ package online.refract.client.gui.modals;
 
 import java.util.ArrayList;
 import java.util.Collections;
-
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.gui.PlayerToken;
 
@@ -47,12 +46,12 @@ public class OrderModal extends Modal {
     @Override
     protected void rebuildButtons() {
         this.layoutRows.clear();
-        this.addButton(createButtonDef(Text.of("Save"), this::saveOrder));
+        this.addButton(createButtonDef(Component.nullToEmpty("Save"), this::saveOrder));
         super.rebuildButtons();
     }
 
     @Override
-    public void render(DrawContext context, TextRenderer textRenderer, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, Font textRenderer, int mouseX, int mouseY, float delta) {
         if (!this.open) return;
 
         drawDimBackground(context);
@@ -65,13 +64,13 @@ public class OrderModal extends Modal {
             this.currentScale = 1.0f;
         }
 
-        context.getMatrices().pushMatrix();
+        context.pose().pushMatrix();
         float centerX = this.screenWidth / 2.0f;
         float centerY = this.screenHeight / 2.0f;
 
-        context.getMatrices().translate(centerX, centerY);
-        context.getMatrices().scale(currentScale, currentScale);
-        context.getMatrices().translate(-centerX, -centerY);
+        context.pose().translate(centerX, centerY);
+        context.pose().scale(currentScale, currentScale);
+        context.pose().translate(-centerX, -centerY);
 
         int scaledMx = getScaledMouseX(mouseX);
         int scaledMy = getScaledMouseY(mouseY);
@@ -81,7 +80,7 @@ public class OrderModal extends Modal {
         drawContent(context, textRenderer, scaledMx, scaledMy, delta);
         drawButtons(context, scaledMx, scaledMy, delta);
 
-        context.getMatrices().popMatrix();
+        context.pose().popMatrix();
     }
 
 
@@ -130,7 +129,7 @@ public class OrderModal extends Modal {
 
 
     @Override
-    protected void drawContent(DrawContext context, TextRenderer textRenderer, int mouseX, int mouseY, float delta) {
+    protected void drawContent(GuiGraphics context, Font textRenderer, int mouseX, int mouseY, float delta) {
         if (workingList == null) return;
 
         if (draggingIndex != -1) {
@@ -152,9 +151,9 @@ public class OrderModal extends Modal {
 
             if (i == draggingIndex) {
                 context.fill(startX, itemY, startX + rowWidth, itemY + ITEM_HEIGHT, 0xFF101010);
-                context.drawBorder(startX, itemY, rowWidth, ITEM_HEIGHT, 0xFF555555);
+                context.renderOutline(startX, itemY, rowWidth, ITEM_HEIGHT, 0xFF555555);
             } else {
-                context.drawCenteredTextWithShadow(textRenderer, Text.of(workingList.get(i).name), nameCenterX, itemY + 6, 0xFFFFFFFF);
+                context.drawCenteredString(textRenderer, Component.nullToEmpty(workingList.get(i).name), nameCenterX, itemY + 6, 0xFFFFFFFF);
             }
         }
 
@@ -165,8 +164,8 @@ public class OrderModal extends Modal {
             int dragY = mouseY + dragOffsetY; 
 
             context.fill(dragX, dragY, dragX + this.width , dragY + ITEM_HEIGHT, 0xFF404040);
-            context.drawBorder(dragX, dragY, rowWidth, ITEM_HEIGHT, 0xFFFFFFFF);
-            context.drawCenteredTextWithShadow(textRenderer, Text.of(token.name), dragX + (this.width / 2), dragY + 7, 0xFFFFFFFF);
+            context.renderOutline(dragX, dragY, rowWidth, ITEM_HEIGHT, 0xFFFFFFFF);
+            context.drawCenteredString(textRenderer, Component.nullToEmpty(token.name), dragX + (this.width / 2), dragY + 7, 0xFFFFFFFF);
         }
     }
 

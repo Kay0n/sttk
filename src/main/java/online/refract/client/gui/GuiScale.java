@@ -1,7 +1,7 @@
 package online.refract.client.gui;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 
 
 public class GuiScale {
@@ -11,24 +11,24 @@ public class GuiScale {
 
 
     public static float getDynamicScale() {
-        int physHeight = MinecraftClient.getInstance().getWindow().getFramebufferHeight();
+        int physHeight = Minecraft.getInstance().getWindow().getHeight();
         if (physHeight == 0) return 1.0f;
         return physHeight / BASE_RESOLUTION_HEIGHT;
     }
 
 
     public static int getUnscaledWidth() {
-        return (int) (MinecraftClient.getInstance().getWindow().getFramebufferWidth() / getDynamicScale());
+        return (int) (Minecraft.getInstance().getWindow().getWidth() / getDynamicScale());
     }
 
 
     public static int getUnscaledHeight() {
-        return (int) (MinecraftClient.getInstance().getWindow().getFramebufferHeight() / getDynamicScale());
+        return (int) (Minecraft.getInstance().getWindow().getHeight() / getDynamicScale());
     }
 
 
     public static MouseCoords getUnscaledMouseCoords(double mouseX, double mouseY) {
-        double guiScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+        double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
         float dynamicScale = getDynamicScale();
         int virtualX = (int)(mouseX * (guiScale / dynamicScale));
         int virtualY = (int)(mouseY * (guiScale / dynamicScale));
@@ -36,17 +36,17 @@ public class GuiScale {
     }
 
 
-    public static void disableGuiScale(DrawContext context) {
-        double guiScale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+    public static void disableGuiScale(GuiGraphics context) {
+        double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
         float dynamicScale = getDynamicScale();
         float matrixScale = (float) (dynamicScale / guiScale);
-        context.getMatrices().pushMatrix();
-        context.getMatrices().scale(matrixScale, matrixScale);
+        context.pose().pushMatrix();
+        context.pose().scale(matrixScale, matrixScale);
     }
 
 
-    public static void enableGuiScale(DrawContext context) {
-        context.getMatrices().popMatrix();
+    public static void enableGuiScale(GuiGraphics context) {
+        context.pose().popMatrix();
     }
     
 }

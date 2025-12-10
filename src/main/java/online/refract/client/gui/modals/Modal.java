@@ -2,14 +2,12 @@ package online.refract.client.gui.modals;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
-
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
 import online.refract.client.ClientActionHandler;
 
 public abstract class Modal {
@@ -27,9 +25,9 @@ public abstract class Modal {
 
     protected boolean open = false;
     protected ClientActionHandler actionHandler;
-    protected List<ButtonWidget> buttons = new ArrayList<>();
+    protected List<Button> buttons = new ArrayList<>();
     protected List<List<RowElement>> layoutRows = new ArrayList<>();
-    protected List<TextFieldWidget> textFields = new ArrayList<>();    
+    protected List<EditBox> editBoxes = new ArrayList<>();    
 
     protected int width;
     protected int height;
@@ -39,7 +37,7 @@ public abstract class Modal {
     protected int y;
     protected String title;
     
-    protected record ButtonDefinition(Text text, Runnable action, boolean isSpacer) {}
+    protected record ButtonDefinition(Component text, Runnable action, boolean isSpacer) {}
 
 
 
@@ -58,8 +56,8 @@ public abstract class Modal {
         this.open = false;
         this.buttons.clear();
         this.layoutRows.clear();
-        this.textFields.clear();
-        for (TextFieldWidget tf : textFields) tf.setFocused(false);
+        this.editBoxes.clear();
+        for (EditBox tf : editBoxes) tf.setFocused(false);
 
     }
 
@@ -71,7 +69,7 @@ public abstract class Modal {
     public void closeModal(){
         this.open = false;
         this.buttons.clear();
-        for (TextFieldWidget tf : textFields) tf.setFocused(false);
+        for (EditBox tf : editBoxes) tf.setFocused(false);
 
     }
 
@@ -100,16 +98,16 @@ public abstract class Modal {
         this.layoutRows.add(row);
     }
 
-    protected void addTextFieldRow(TextFieldWidget tf) {
-        tf.setDrawsBackground(true);
-        this.textFields.add(tf);
+    protected void addEditBoxRow(EditBox tf) {
+        tf.setBordered(true);
+        this.editBoxes.add(tf);
 
         List<RowElement> row = new ArrayList<>();
-        row.add(RowElement.textField(tf));
+        row.add(RowElement.editBox(tf));
         this.layoutRows.add(row);
     }
 
-    protected ButtonDefinition createButtonDef(Text text, Runnable action) {
+    protected ButtonDefinition createButtonDef(Component text, Runnable action) {
         return new ButtonDefinition(text, action, false);
     }
 
@@ -124,7 +122,7 @@ public abstract class Modal {
 
             switch (e.type) {
                 case BUTTON -> totalHeight += BUTTON_HEIGHT;
-                case TEXT_FIELD -> totalHeight += BUTTON_HEIGHT;
+                case EDIT_BOX -> totalHeight += BUTTON_HEIGHT;
                 case SPACER -> totalHeight += e.spacerSize;
             }
         }
@@ -140,8 +138,8 @@ public abstract class Modal {
             }
 
             // TEXT FIELD ROW
-            if (row.get(0).type == RowElement.Type.TEXT_FIELD) {
-                TextFieldWidget tf = row.get(0).textField;
+            if (row.get(0).type == RowElement.Type.EDIT_BOX) {
+                EditBox tf = row.get(0).editBox;
                 int fieldWidth = availableWidth;
                 int fieldX = this.x + modalMarginX;
 
@@ -164,8 +162,8 @@ public abstract class Modal {
             for (RowElement elem : row) {
                 ButtonDefinition def = elem.button;
 
-                ButtonWidget btn = ButtonWidget.builder(def.text, b -> def.action.run())
-                        .dimensions(currentX, currentY, buttonWidth, BUTTON_HEIGHT)
+                Button btn = Button.builder(def.text, b -> def.action.run())
+                        .bounds(currentX, currentY, buttonWidth, BUTTON_HEIGHT)
                         .build();
 
                 this.buttons.add(btn);
@@ -176,29 +174,29 @@ public abstract class Modal {
         }
     }
 
-    public void render(DrawContext context, TextRenderer textRenderer, int mouseX, int mouseY, float delta){
+    public void render(GuiGraphics context, Font textRenderer, int mouseX, int mouseY, float delta){
         if (!this.open) return;
         
         drawDimBackground(context);
         drawModal(context);
         drawTitle(context, textRenderer);
         drawContent(context, textRenderer, mouseX, mouseY, delta);
-        drawTextFields(context, mouseX, mouseY, delta);
+        drawEditBoxes(context, mouseX, mouseY, delta);
         drawButtons(context, mouseX, mouseY, delta);
 
 
     }
 
-    public void drawDimBackground(DrawContext context){
+    public void drawDimBackground(GuiGraphics context){
         context.fillGradient(0, 0, this.screenWidth, this.screenHeight, BG_DIM, BG_DIM); 
 
     }
-    public void drawModal(DrawContext context){
+    public void drawModal(GuiGraphics context){
         context.fill(this.x, this.y, this.x + this.width, this.y + this.height, MODAL_BG);
-        context.drawBorder(this.x, this.y, this.width, this.height, MODAL_BORDER);
+        context.renderOutline(this.x, this.y, this.width, this.height, MODAL_BORDER);
     }
-    public void drawTitle(DrawContext context, TextRenderer textRenderer){
-        context.drawCenteredTextWithShadow(
+    public void drawTitle(GuiGraphics context, Font textRenderer){
+        context.drawCenteredString(
             textRenderer, 
             this.title, 
             this.x + (this.width / 2), 
@@ -208,19 +206,19 @@ public abstract class Modal {
         
     }
 
-    public void drawButtons(DrawContext context, int mouseX, int mouseY, float delta){
-        for (ButtonWidget btn : buttons) {
+    public void drawButtons(GuiGraphics context, int mouseX, int mouseY, float delta){
+        for (Button btn : buttons) {
             btn.render(context, mouseX, mouseY, delta);
         }
     }
 
-    protected void drawTextFields(DrawContext context, int mouseX, int mouseY, float delta){
-        for (TextFieldWidget tf : textFields) {
+    protected void drawEditBoxes(GuiGraphics context, int mouseX, int mouseY, float delta){
+        for (EditBox tf : editBoxes) {
             tf.render(context, mouseX, mouseY, delta);
         }
     }
 
-    protected void drawContent(DrawContext context, TextRenderer textRenderer, int mouseX, int mouseY, float delta) {
+    protected void drawContent(GuiGraphics context, Font textRenderer, int mouseX, int mouseY, float delta) {
     }
 
 
@@ -233,7 +231,7 @@ public abstract class Modal {
             return true;
         }
 
-        for (TextFieldWidget tf : textFields) {
+        for (EditBox tf : editBoxes) {
             if (tf.mouseClicked(mx, my, button)) {
                 tf.setFocused(true);
                 return true; 
@@ -242,10 +240,10 @@ public abstract class Modal {
             }
         }
 
-        for (ButtonWidget btn : buttons) {
+        for (Button btn : buttons) {
             if (btn.mouseClicked(mx, my, button)){
                 closeModal();
-                for (TextFieldWidget tf : textFields) tf.setFocused(false);
+                for (EditBox tf : editBoxes) tf.setFocused(false);
                 return true;
             } 
         }
@@ -262,7 +260,7 @@ public abstract class Modal {
 
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        for (TextFieldWidget tf : textFields) {
+        for (EditBox tf : editBoxes) {
             if (tf.keyPressed(keyCode, scanCode, modifiers)) {
                 return true;
             }
@@ -278,7 +276,7 @@ public abstract class Modal {
 
     public boolean charTyped(char chr, int modifiers) {
         if (!this.open) return false;
-        for (TextFieldWidget tf : textFields) {
+        for (EditBox tf : editBoxes) {
             if (tf.charTyped(chr, modifiers)) {
                 return true;
             }
@@ -294,18 +292,18 @@ public abstract class Modal {
 
 
     protected static class RowElement {
-        enum Type { BUTTON, SPACER, TEXT_FIELD }
+        enum Type { BUTTON, SPACER, EDIT_BOX }
 
         final Type type;
         final ButtonDefinition button;
-        final TextFieldWidget textField;
+        final EditBox editBox;
         final int spacerSize;
 
 
-        RowElement(Type type, ButtonDefinition button, TextFieldWidget textField, int spacerSize) {
+        RowElement(Type type, ButtonDefinition button, EditBox editBox, int spacerSize) {
             this.type = type;
             this.button = button;
-            this.textField = textField;
+            this.editBox = editBox;
             this.spacerSize = spacerSize;
         }
 
@@ -317,8 +315,8 @@ public abstract class Modal {
             return new RowElement(Type.SPACER, null, null, size);
         }
 
-        static RowElement textField(TextFieldWidget tf) {
-            return new RowElement(Type.TEXT_FIELD, null, tf, 0);
+        static RowElement editBox(EditBox tf) {
+            return new RowElement(Type.EDIT_BOX, null, tf, 0);
         }
     }
     

@@ -1,17 +1,17 @@
 package online.refract;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardCriterion;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ScoreHolder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.scores.Objective;
+import net.minecraft.world.scores.ScoreHolder;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 
 
 
 public class ModLogic {
 
-    public static void handleAction(ServerPlayerEntity st, ServerPlayerEntity target, String action) {
+    public static void handleAction(ServerPlayer st, ServerPlayer target, String action) {
         switch (action) {
             case "TOGGLE_DEAD" -> toggleScore(target, "sttk_dead");
             case "TOGGLE_NOMINATE" -> toggleScore(target, "sttk_nominated");
@@ -31,37 +31,37 @@ public class ModLogic {
     }
 
 
-    private static void toggleScore(ServerPlayerEntity player, String objName) {
+    private static void toggleScore(ServerPlayer player, String objName) {
         int current = getScore(player, objName);
         setScore(player, objName, current == 1 ? 0 : 1);
     }
 
 
-    public static int getScore(ServerPlayerEntity player, String objName) {
+    public static int getScore(ServerPlayer player, String objName) {
         Scoreboard sb = player.getScoreboard();
-        ScoreboardObjective obj = sb.getNullableObjective(objName);
+        Objective obj = sb.getObjective(objName);
         if (obj == null) return 0;
-        return sb.getOrCreateScore(player, obj).getScore();
+        return sb.getOrCreatePlayerScore(player, obj).get();
     }
 
 
-    public static void setScore(ServerPlayerEntity player, String objName, int value) {
+    public static void setScore(ServerPlayer player, String objName, int value) {
         Scoreboard sb = player.getScoreboard();
-        ScoreboardObjective obj = sb.getNullableObjective(objName);
+        Objective obj = sb.getObjective(objName);
         if (obj == null) {
-            obj = sb.addObjective(objName, ScoreboardCriterion.DUMMY, Text.of(objName), ScoreboardCriterion.RenderType.INTEGER, true, null);
+            obj = sb.addObjective(objName, ObjectiveCriteria.DUMMY, Component.nullToEmpty(objName), ObjectiveCriteria.RenderType.INTEGER, true, null);
         }
-        sb.getOrCreateScore(player, obj).setScore(value);
+        sb.getOrCreatePlayerScore(player, obj).set(value);
     }
 
 
     public static void setGlobalScore(MinecraftServer server, String objName, int value) {
         Scoreboard sb = server.getScoreboard();
-        ScoreboardObjective obj = sb.getNullableObjective(objName);
+        Objective obj = sb.getObjective(objName);
         if (obj == null) {
-            obj = sb.addObjective(objName, ScoreboardCriterion.DUMMY, Text.of(objName), ScoreboardCriterion.RenderType.INTEGER, true, null);
+            obj = sb.addObjective(objName, ObjectiveCriteria.DUMMY, Component.nullToEmpty(objName), ObjectiveCriteria.RenderType.INTEGER, true, null);
         }
-        ScoreHolder globalHolder = ScoreHolder.fromName("#GLOBAL");
-        sb.getOrCreateScore(globalHolder, obj).setScore(value);
+        ScoreHolder globalHolder = ScoreHolder.forNameOnly("#GLOBAL");
+        sb.getOrCreatePlayerScore(globalHolder, obj).set(value);
     }
 }

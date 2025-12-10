@@ -1,6 +1,6 @@
 package online.refract.client.gui.modals;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.gui.PlayerToken;
 
@@ -35,11 +35,11 @@ public class TokenModal extends Modal{
         this.modalMarginY = 10;
         this.elementMarginX = 5;
         this.elementMarginY = 1;
-        addButton(createButtonDef(Text.literal("🏠 Home"), () -> actionHandler.homeTeleport(selectedPlayer.name)));
-        addButton(createButtonDef(Text.literal("☠️ Kill/Revive"), () -> actionHandler.kill(selectedPlayer.name)));
-        addButton(createButtonDef(Text.literal("👈 Nominate"), () -> actionHandler.nominate(selectedPlayer.name)));
-        addButton(createButtonDef(Text.literal("🔨 On The Block"), () -> actionHandler.nominate(selectedPlayer.name)));
-        addButton(createButtonDef(Text.literal("✅ Ghost Vote"), () -> actionHandler.nominate(selectedPlayer.name)));
+        addButton(createButtonDef(Component.literal("🏠 Home"), () -> actionHandler.homeTeleport(selectedPlayer.name)));
+        addButton(createButtonDef(Component.literal("☠️ Kill/Revive"), () -> actionHandler.kill(selectedPlayer.name)));
+        addButton(createButtonDef(Component.literal("👈 Nominate"), () -> actionHandler.nominate(selectedPlayer.name)));
+        addButton(createButtonDef(Component.literal("🔨 On The Block"), () -> actionHandler.nominate(selectedPlayer.name)));
+        addButton(createButtonDef(Component.literal("✅ Ghost Vote"), () -> actionHandler.nominate(selectedPlayer.name)));
     }
 
 

@@ -1,13 +1,13 @@
 package online.refract.client.gui.modals;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
 
 public class TimerModal extends Modal {
 
-    private TextFieldWidget timeInput;
+    private EditBox timeInput;
     private boolean isUpdating = false; 
 
     public TimerModal(ClientActionHandler actionHandler) {
@@ -25,43 +25,43 @@ public class TimerModal extends Modal {
 
         // --- Add Preset Buttons ---
         addButtonRow(
-            createButtonDef(Text.literal("1m"), () -> actionHandler.setTimer(60)),
-            createButtonDef(Text.literal("2m"), () -> actionHandler.setTimer(60 * 2))
+            createButtonDef(Component.literal("1m"), () -> actionHandler.setTimer(60)),
+            createButtonDef(Component.literal("2m"), () -> actionHandler.setTimer(60 * 2))
         );
 
         addButtonRow(
-            createButtonDef(Text.literal("3m"), () -> actionHandler.setTimer(60 * 3)),
-            createButtonDef(Text.literal("4m"), () -> actionHandler.setTimer(60 * 4))
+            createButtonDef(Component.literal("3m"), () -> actionHandler.setTimer(60 * 3)),
+            createButtonDef(Component.literal("4m"), () -> actionHandler.setTimer(60 * 4))
         );
         addButtonRow(
-            createButtonDef(Text.literal("5m"), () -> actionHandler.setTimer(60 * 5)),
-            createButtonDef(Text.literal("6m"), () -> actionHandler.setTimer(60 * 6))
+            createButtonDef(Component.literal("5m"), () -> actionHandler.setTimer(60 * 5)),
+            createButtonDef(Component.literal("6m"), () -> actionHandler.setTimer(60 * 6))
         );
 
         addVerticalSpacer(1);
 
-        TextFieldWidget tf = new TextFieldWidget(
-            MinecraftClient.getInstance().textRenderer,
-            0, 0, 0, 0, Text.literal("Time")
+        EditBox tf = new EditBox(
+            Minecraft.getInstance().font,
+            0, 0, 0, 0, Component.literal("Time")
         );
 
         tf.setMaxLength(5);
-        tf.setChangedListener(this::onTimeInputChanged);
+        tf.setResponder(this::onTimeInputChanged);
         this.timeInput = tf;
-        addTextFieldRow(tf);
+        addEditBoxRow(tf);
 
   
         addVerticalSpacer(1);
         
-        addButtonRow(createButtonDef(Text.literal("Set Custom Time"), () -> {
-            String input = timeInput.getText();
+        addButtonRow(createButtonDef(Component.literal("Set Custom Time"), () -> {
+            String input = timeInput.getValue();
             int seconds = parseTime(input);
             
             if (seconds > 0) {
                 this.actionHandler.setTimer(seconds);
                 this.closeModal();
             } else {
-                this.timeInput.setEditableColor(0xFFFFFFFF);
+                this.timeInput.setTextColor(0xFFFFFFFF);
             }
         }));
     }
@@ -86,11 +86,11 @@ public class TimerModal extends Modal {
         }
 
         if (!formatted.equals(newText)) {
-            this.timeInput.setText(formatted);
-            this.timeInput.setCursor(formatted.length(), false); 
+            this.timeInput.setValue(formatted);
+            this.timeInput.moveCursorTo(formatted.length(), false); 
         }
 
-        this.timeInput.setEditableColor(0xFFFFFFFF);
+        this.timeInput.setTextColor(0xFFFFFFFF);
 
         isUpdating = false;
     }
@@ -130,8 +130,8 @@ public class TimerModal extends Modal {
     public void openModal() {
         super.openModal();
         if(this.timeInput != null) {
-            this.timeInput.setText("");
-            this.timeInput.setEditableColor(0xFFFFFFFF); 
+            this.timeInput.setValue("");
+            this.timeInput.setTextColor(0xFFFFFFFF); 
             this.timeInput.setFocused(true); 
         }
     }

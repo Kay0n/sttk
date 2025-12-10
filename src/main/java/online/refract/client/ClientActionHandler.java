@@ -1,6 +1,6 @@
 package online.refract.client;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class ClientActionHandler {
 
@@ -56,9 +56,9 @@ public class ClientActionHandler {
 
 
     public void debug(String msg) {
-        if (MinecraftClient.getInstance().player != null) {
-            MinecraftClient.getInstance().player.sendMessage(
-                net.minecraft.text.Text.of("§b[STTK]: §f" + msg), false);
+        if (Minecraft.getInstance().player != null) {
+            Minecraft.getInstance().player.displayClientMessage(
+                net.minecraft.network.chat.Component.nullToEmpty("§b[STTK]: §f" + msg), false);
         }
     }
 

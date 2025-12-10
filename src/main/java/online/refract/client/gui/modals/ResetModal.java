@@ -1,6 +1,6 @@
 package online.refract.client.gui.modals;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
 
 
@@ -20,10 +20,10 @@ public class ResetModal extends Modal{
     public void init(int screenWidth, int screenHeight) {
         super.init(screenWidth, screenHeight);
         addButtonRow(
-            createButtonDef(Text.literal("Reset"), () -> {
+            createButtonDef(Component.literal("Reset"), () -> {
                 actionHandler.resetScores();
             }),
-            createButtonDef(Text.literal("Cancel"), () -> {
+            createButtonDef(Component.literal("Cancel"), () -> {
             })
         );
     }

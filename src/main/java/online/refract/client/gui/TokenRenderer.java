@@ -1,18 +1,16 @@
 package online.refract.client.gui;
 
 import java.util.ArrayList;
-
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 public class TokenRenderer {
 
-    private static final Identifier TOKEN_TEXTURE = Identifier.of("sttk", "textures/gui/token-greyscale.png");
+    private static final ResourceLocation TOKEN_TEXTURE = ResourceLocation.fromNamespaceAndPath("sttk", "textures/gui/token-greyscale.png");
 
     private static final int MAX_TOKEN_SIZE = 100; 
     private static final int TOKEN_MARGIN = 1;    
@@ -46,7 +44,7 @@ public class TokenRenderer {
 
 
 
-    public void drawTokenCircle(DrawContext context, TextRenderer textRenderer, ArrayList<PlayerToken> players, int virtualWidth, int virtualHeight) {
+    public void drawTokenCircle(GuiGraphics context, Font textRenderer, ArrayList<PlayerToken> players, int virtualWidth, int virtualHeight) {
         if (players.isEmpty()) return;
 
         int centerX = virtualWidth / 2;
@@ -78,8 +76,8 @@ public class TokenRenderer {
 
 
 
-    public void drawToken(DrawContext context, PlayerToken player, int x, int y, int size) {
-        context.drawTexture(
+    public void drawToken(GuiGraphics context, PlayerToken player, int x, int y, int size) {
+        context.blit(
                 RenderPipelines.GUI_TEXTURED, 
                 TOKEN_TEXTURE,
                 x, y,
@@ -92,12 +90,12 @@ public class TokenRenderer {
 
 
 
-    public void drawNames(DrawContext context, TextRenderer textRenderer, PlayerToken player, int x, int y, int size){
-        Text name = Text.of(player.name);
-        int nameW = textRenderer.getWidth(name);
+    public void drawNames(GuiGraphics context, Font textRenderer, PlayerToken player, int x, int y, int size){
+        Component name = Component.nullToEmpty(player.name);
+        int nameW = textRenderer.width(name);
         int textX = x + (size / 2) - (nameW / 2);
         int textY = y + 4;
-        context.drawTextWithShadow(textRenderer, name, textX , textY, 0xFFFFAA00);
+        context.drawString(textRenderer, name, textX , textY, 0xFFFFAA00);
     }
 
 
