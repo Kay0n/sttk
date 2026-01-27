@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
+import online.refract.client.gui.Modal.ButtonData;
+import online.refract.client.gui.Modal;
 
 public class TimerModal extends Modal {
 
@@ -11,60 +13,54 @@ public class TimerModal extends Modal {
     private boolean isUpdating = false; 
 
     public TimerModal(ClientActionHandler actionHandler) {
-        super(actionHandler, "Timer", 140, 160);
+        super(actionHandler, "Timer", 140, 170, 5, 10);
     }
 
     @Override
     public void init(int screenWidth, int screenHeight) {
 
-        modalMarginX = 8;
-        modalMarginY = 8;
-        elementMarginX = 4;
-        elementMarginY = 4;
+
         super.init(screenWidth, screenHeight);
 
         // --- Add Preset Buttons ---
         addButtonRow(
-            createButtonDef(Component.literal("1m"), () -> actionHandler.setTimer(60)),
-            createButtonDef(Component.literal("2m"), () -> actionHandler.setTimer(60 * 2))
-        );
-
-        addButtonRow(
-            createButtonDef(Component.literal("3m"), () -> actionHandler.setTimer(60 * 3)),
-            createButtonDef(Component.literal("4m"), () -> actionHandler.setTimer(60 * 4))
+            new ButtonData(Component.literal("1m"), () -> actionHandler.setTimer(60)),
+            new ButtonData(Component.literal("2m"), () -> actionHandler.setTimer(60 * 2))
         );
         addButtonRow(
-            createButtonDef(Component.literal("5m"), () -> actionHandler.setTimer(60 * 5)),
-            createButtonDef(Component.literal("6m"), () -> actionHandler.setTimer(60 * 6))
+            new ButtonData(Component.literal("3m"), () -> actionHandler.setTimer(60 * 3)),
+            new ButtonData(Component.literal("4m"), () -> actionHandler.setTimer(60 * 4))
+        );
+        addButtonRow(
+            new ButtonData(Component.literal("5m"), () -> actionHandler.setTimer(60 * 5)),
+            new ButtonData(Component.literal("6m"), () -> actionHandler.setTimer(60 * 6))
         );
 
-        addVerticalSpacer(1);
+        addSpacerRow();
 
-        EditBox tf = new EditBox(
-            Minecraft.getInstance().font,
-            0, 0, 0, 0, Component.literal("Time")
-        );
+        EditBox editBox = createEditbox("Time", 5);
+        editBox.setResponder(this::onTimeInputChanged);
+        this.timeInput = editBox;
+        addEditBoxRow(editBox);
 
-        tf.setMaxLength(5);
-        tf.setResponder(this::onTimeInputChanged);
-        this.timeInput = tf;
-        addEditBoxRow(tf);
-
-  
-        addVerticalSpacer(1);
+        // addSpacerRow();
         
-        addButtonRow(createButtonDef(Component.literal("Set Custom Time"), () -> {
-            String input = timeInput.getValue();
-            int seconds = parseTime(input);
-            
-            if (seconds > 0) {
-                this.actionHandler.setTimer(seconds);
-                this.closeModal();
-            } else {
-                this.timeInput.setTextColor(0xFFFFFFFF);
-            }
-        }));
+        addButtonRow(new ButtonData(Component.literal("Set Custom Time"), this::setCustomTime));
     }
+
+
+    private void setCustomTime() {
+        String input = timeInput.getValue();
+        int seconds = parseTime(input);
+        
+        if (seconds > 0) {
+            this.actionHandler.setTimer(seconds);
+            this.closeModal();
+        } else {
+            this.timeInput.setTextColor(0xFFFFFFFF);
+        }
+    }
+    
 
 
     private void onTimeInputChanged(String newText) {

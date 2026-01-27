@@ -1,11 +1,14 @@
 package online.refract.client.gui.modals;
 
+
 import java.util.ArrayList;
 import java.util.Collections;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
+import online.refract.client.gui.Modal;
 import online.refract.client.gui.PlayerToken;
 
 public class OrderModal extends Modal {
@@ -33,7 +36,7 @@ public class OrderModal extends Modal {
         this.draggingIndex = -1;
         
         int listHeight = workingList.size() * ITEM_HEIGHT;
-        int requiredHeight = LIST_TOP_OFFSET + listHeight + BUTTON_HEIGHT + (modalMarginY * 2);
+        int requiredHeight = LIST_TOP_OFFSET + listHeight + ELEMENT_HEIGHT + (verticalPadding * 2);
         this.height = requiredHeight;
         
         this.x = (this.screenWidth - this.width) / 2;
@@ -44,20 +47,20 @@ public class OrderModal extends Modal {
     
     
     @Override
-    protected void rebuildButtons() {
-        this.layoutRows.clear();
-        this.addButton(createButtonDef(Component.nullToEmpty("Save"), this::saveOrder));
-        super.rebuildButtons();
+    protected void rebuildLayout() {
+        this.rowDefinitions.clear();
+        this.addButtonRow(new ButtonData(Component.nullToEmpty("Save"), this::saveOrder));
+        super.rebuildLayout();
     }
 
     @Override
-    public void render(GuiGraphics context, Font textRenderer, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, Font font, int mouseX, int mouseY, float delta) {
         if (!this.open) return;
 
-        drawDimBackground(context);
+        context.fillGradient(0, 0, this.screenWidth, this.screenHeight, BG_DIM, BG_DIM);
 
 
-        float maxScreenHeight = this.screenHeight - modalMarginY; 
+        float maxScreenHeight = this.screenHeight - verticalPadding; 
         if (this.height > maxScreenHeight) {
             this.currentScale = maxScreenHeight / (float) this.height;
         } else {
@@ -75,10 +78,14 @@ public class OrderModal extends Modal {
         int scaledMx = getScaledMouseX(mouseX);
         int scaledMy = getScaledMouseY(mouseY);
 
-        drawModal(context);
-        drawTitle(context, textRenderer);
-        drawContent(context, textRenderer, scaledMx, scaledMy, delta);
-        drawButtons(context, scaledMx, scaledMy, delta);
+        context.fill(this.x, this.y, this.x + this.width, this.y + this.height, MODAL_BG);
+        context.renderOutline(this.x, this.y, this.width, this.height, MODAL_BORDER);
+        context.drawCenteredString(font, this.title, this.x + (this.width / 2), this.y + verticalPadding, 0xFFFFFFFF);
+        drawPlayerList(context, font, scaledMx, scaledMy, delta);
+        
+        for (AbstractWidget widget : activeWidgets) {
+            widget.render(context, mouseX, mouseY, delta);
+        }
 
         context.pose().popMatrix();
     }
@@ -128,8 +135,7 @@ public class OrderModal extends Modal {
     }
 
 
-    @Override
-    protected void drawContent(GuiGraphics context, Font textRenderer, int mouseX, int mouseY, float delta) {
+    protected void drawPlayerList(GuiGraphics context, Font font, int mouseX, int mouseY, float delta) {
         if (workingList == null) return;
 
         if (draggingIndex != -1) {
@@ -140,10 +146,10 @@ public class OrderModal extends Modal {
             }
         }
 
-        int startX = this.x + modalMarginX;
+        int startX = this.x + horizontalPadding;
         int nameCenterX = this.x + (this.width / 2);
         int startY = this.y + LIST_TOP_OFFSET;
-        int rowWidth = this.width - (modalMarginX * 2);
+        int rowWidth = this.width - (horizontalPadding * 2);
 
         for (int i = 0; i < workingList.size(); i++) {
             int itemY = startY + (i * ITEM_HEIGHT);
@@ -153,7 +159,7 @@ public class OrderModal extends Modal {
                 context.fill(startX, itemY, startX + rowWidth, itemY + ITEM_HEIGHT, 0xFF101010);
                 context.renderOutline(startX, itemY, rowWidth, ITEM_HEIGHT, 0xFF555555);
             } else {
-                context.drawCenteredString(textRenderer, Component.nullToEmpty(workingList.get(i).name), nameCenterX, itemY + 6, 0xFFFFFFFF);
+                context.drawCenteredString(font, Component.nullToEmpty(workingList.get(i).name), nameCenterX, itemY + 6, 0xFFFFFFFF);
             }
         }
 
@@ -165,13 +171,13 @@ public class OrderModal extends Modal {
 
             context.fill(dragX, dragY, dragX + this.width , dragY + ITEM_HEIGHT, 0xFF404040);
             context.renderOutline(dragX, dragY, rowWidth, ITEM_HEIGHT, 0xFFFFFFFF);
-            context.drawCenteredString(textRenderer, Component.nullToEmpty(token.name), dragX + (this.width / 2), dragY + 7, 0xFFFFFFFF);
+            context.drawCenteredString(font, Component.nullToEmpty(token.name), dragX + (this.width / 2), dragY + 7, 0xFFFFFFFF);
         }
     }
 
     private int getIndexAtPosition(int mx, int my) {
-        int listStartX = this.x + modalMarginX;
-        int listWidth = this.width - (modalMarginX * 2);
+        int listStartX = this.x + horizontalPadding;
+        int listWidth = this.width - (horizontalPadding * 2);
         int listStartY = this.y + LIST_TOP_OFFSET;
         int totalListHeight = workingList.size() * ITEM_HEIGHT;
 
