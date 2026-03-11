@@ -1,15 +1,14 @@
 package online.refract.client.gui;
-
 import online.refract.Sttk;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.SttkClient;
 import online.refract.client.gui.GuiScale.MouseCoords;
-import online.refract.client.gui.modals.OrderModal;
-import online.refract.client.gui.modals.ResetModal;
-import online.refract.client.gui.modals.TimerModal;
+import online.refract.client.gui.modals.LinkPlayerModal;
 import online.refract.client.gui.modals.TokenModal;
+import online.refract.client.gui.objects.Modal;
 
 import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -22,14 +21,16 @@ public class GrimoireScreen extends Screen {
 
     private final ClientActionHandler actionHandler = new ClientActionHandler();
 
-    private final ArrayList<PlayerToken> players = new ArrayList<>();
-    private final ArrayList<Button> globalButtons = new ArrayList<>();
+    private final List<PlayerToken> players = new ArrayList<>();
+    private final List<Button> globalButtons = new ArrayList<>();
+    private final List<Modal> modals = new ArrayList<>();
     private final TokenRenderer tokenRenderer = new TokenRenderer();
 
-    private final TokenModal tokenModal = new TokenModal(actionHandler);
-    private final OrderModal orderModal = new OrderModal(actionHandler);
-    private final ResetModal resetModal = new ResetModal(actionHandler);
-    private final TimerModal timerModal = new TimerModal(actionHandler);
+    private final LinkPlayerModal linkPlayerModal = registerModal(new LinkPlayerModal(actionHandler));
+    private final TokenModal tokenModal = registerModal(new TokenModal(actionHandler, linkPlayerModal));
+    // private final OrderModal orderModal = registerModal(new OrderModal(actionHandler));
+    // private final ResetModal resetModal = registerModal(new ResetModal(actionHandler));
+    // private final TimerModal timerModal = registerModal(new TimerModal(actionHandler));
 
 
 
@@ -43,15 +44,17 @@ public class GrimoireScreen extends Screen {
     }
 
 
+
     
     @Override
     protected void init() {
         this.globalButtons.clear();
         setupGlobalButtons();
-        resetModal.init(this.width, this.height);
-        orderModal.init(this.width, this.height);
-        tokenModal.init(this.width, this.height);
-        timerModal.init(this.width, this.height);
+
+        for (Modal modal : modals) {
+            modal.init(this.width, this.height);
+        }
+
         super.init();
     }
 
@@ -60,7 +63,7 @@ public class GrimoireScreen extends Screen {
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {   
         
-        boolean modalsAreOpen = resetModal.isOpen() || orderModal.isOpen() || tokenModal.isOpen();
+        boolean modalsAreOpen = modals.stream().anyMatch(Modal::isOpen);
 
         for (Button btn : globalButtons) {
             btn.active = !modalsAreOpen;
@@ -74,10 +77,9 @@ public class GrimoireScreen extends Screen {
 
         GuiScale.enableGuiScale(context);
 
-        orderModal.render(context, font, mouseX, mouseY, delta);
-        resetModal.render(context, font, mouseX, mouseY, delta);
-        tokenModal.render(context, font, mouseX, mouseY, delta);
-        timerModal.render(context, font, mouseX, mouseY, delta);
+        for (Modal modal : modals) {
+            modal.render(context, font, mouseX, mouseY, delta);
+        }
     }
 
 
@@ -90,14 +92,12 @@ public class GrimoireScreen extends Screen {
         int y = padding;
         int gap = 22;
         
-        addGlobalBtn("✋ Vote", x, y, () -> actionHandler.startVote());
-        addGlobalBtn("🌘 Night", x, y + gap, () -> actionHandler.setNight());
-        addGlobalBtn("☁ Evening", x, y + gap*2, () -> actionHandler.setEvening());
-        addGlobalBtn("🔆 Day", x, y + gap*3, () -> actionHandler.setDay());
+        // addGlobalBtn("✋ Vote", x, y, () -> actionHandler.startVote());
 
-        addGlobalBtn("⏳ Timer", screenWidth - btnWidth - padding * 2, y, () -> timerModal.openModal());
-        addGlobalBtn("☰ Order",(screenWidth - btnWidth - (padding * 2)), y + gap, () -> orderModal.openModal(players));
-        addGlobalBtn("🔄 Reset", (screenWidth - btnWidth - (padding * 2)), y + gap*2, () -> resetModal.openModal());
+
+        // addGlobalBtn("⏳ Timer", screenWidth - btnWidth - padding * 2, y, () -> timerModal.openModal());
+
+
     }
 
 
@@ -108,22 +108,20 @@ public class GrimoireScreen extends Screen {
         this.globalButtons.add(btn);
     }
 
-    
+
+    private <T extends Modal> T registerModal(T modal) {
+        this.modals.add(modal);
+        return modal;
+    }
+
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
 
-        if (tokenModal.mouseClicked((int) mouseX, (int) mouseY, button)){
-            return true;
-        } 
-        if (orderModal.mouseClicked((int) mouseX, (int) mouseY, button)){
-            return true;
-        }
-        if(resetModal.mouseClicked((int) mouseX, (int) mouseY, button)){
-            return true;
-        }
-        if(timerModal.mouseClicked((int) mouseX, (int) mouseY, button)){
-            return true;
+        for (Modal modal : modals) {
+            if (modal.mouseClicked((int) mouseX, (int) mouseY, button)) {
+                return true;
+            }
         }
 
         for (Button btn : globalButtons) {
@@ -140,26 +138,39 @@ public class GrimoireScreen extends Screen {
     }
 
 
-
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (orderModal.mouseReleased(mouseX, mouseY, button)) {
-            return true;
+        for (Modal modal : modals) {
+            if (modal.mouseReleased(mouseX, mouseY, button)) return true;
         }
-        return false;
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
-
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        for (Modal modal : modals) {
+            if (modal.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+                return true;
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+    
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        for (Modal modal : modals) {
+            if (modal.mouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
 
     @Override
     public boolean charTyped(char chr, int modifiers) {
-        if (timerModal.charTyped(chr, modifiers)){
-            return true;
+        for (Modal modal : modals) {
+            if (modal.charTyped(chr, modifiers)) return true;
         }
-        return false;
+        return super.charTyped(chr, modifiers);
     }
-
-
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -168,16 +179,10 @@ public class GrimoireScreen extends Screen {
             return true;   
         }
 
-        if (tokenModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
-        if (orderModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
-        if (resetModal.keyPressed(keyCode, scanCode, modifiers)){ return true; }
-        if(timerModal.keyPressed(keyCode, scanCode, modifiers)){ return true;}
+        for (Modal modal : modals) {
+            if (modal.keyPressed(keyCode, scanCode, modifiers)) return true;
+        }
 
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
-
-
-
-    
-
 }

@@ -59,3 +59,6 @@ public class ClocktowerState {
         }
     }
 }
+
+
+//  curl -N "https://botc.games/api/town/stream/test?password=pass"

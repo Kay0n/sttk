@@ -1,6 +1,8 @@
 package online.refract.client.gui;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -44,7 +46,7 @@ public class TokenRenderer {
 
 
 
-    public void drawTokenCircle(GuiGraphics context, Font textRenderer, ArrayList<PlayerToken> players, int virtualWidth, int virtualHeight) {
+    public void drawTokenCircle(GuiGraphics context, Font textRenderer, List<PlayerToken> players, int virtualWidth, int virtualHeight) {
         if (players.isEmpty()) return;
 
         int centerX = virtualWidth / 2;
@@ -101,7 +103,7 @@ public class TokenRenderer {
 
 
     @Nullable
-    public PlayerToken handleTokenClick(ArrayList<PlayerToken> players, double mouseX, double mouseY, int button){
+    public PlayerToken handleTokenClick(List<PlayerToken> players, double mouseX, double mouseY, int button){
         if (button == 0) {
             for (PlayerToken player : players) {
                 double distFromToken = Math.sqrt(Math.pow(mouseX - player.renderX, 2) + Math.pow(mouseY - player.renderY, 2));
