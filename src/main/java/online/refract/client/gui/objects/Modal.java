@@ -19,47 +19,46 @@ public abstract class Modal {
     public static final int MODAL_BG = 0xFF202020;
     public static final int MODAL_BORDER = 0xFFFFFFFF;
 
-    protected static final int DEFAULT_MARGIN = 12;
-    protected static final int DEFAULT_GAP = 8;
-    protected static final int ELEMENT_HEIGHT = 20;
+    private static final int DEFAULT_MARGIN = 12;
+    private static final int DEFAULT_GAP = 8;
+    private static final int ELEMENT_HEIGHT = 20;
 
     protected boolean open = false;
     protected int width, height, x, y, screenWidth, screenHeight;
     protected int margin, gap;
     protected String title;
     protected final ClientActionHandler actionHandler;
+    protected Font font;
     
-    protected final List<RowData> rows = new ArrayList<>();
-    protected final List<AbstractWidget> activeWidgets = new ArrayList<>();
-    protected AbstractWidget focusedWidget = null;
+    private final List<RowData> rows = new ArrayList<>();
+    private final List<AbstractWidget> activeWidgets = new ArrayList<>();
+    private AbstractWidget focusedWidget = null;
 
     // height of -1 means "expand to fill remaining space"
     protected record RowData(List<AbstractWidget> widgets, int height) {}
 
 
-    public Modal(ClientActionHandler actionHandler, String title, int width, int height, int margin, int gap) {
+    public Modal(ClientActionHandler actionHandler, String title, int width, int margin, int gap) {
         this.actionHandler = actionHandler;
         this.title = title;
         this.width = width;
-        this.height = height;
         this.margin = margin;
         this.gap = gap;
     }
 
-    public Modal(ClientActionHandler actionHandler, String title, int width, int height) {
-        this(actionHandler, title, width, height, DEFAULT_MARGIN, DEFAULT_GAP);
+    public Modal(ClientActionHandler actionHandler, String title, int width) {
+        this(actionHandler, title, width, DEFAULT_MARGIN, DEFAULT_GAP);
     }
 
 
 
-    public void init(int screenWidth, int screenHeight) {
+    public void init(int screenWidth, int screenHeight, Font font) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-        this.x = (screenWidth - this.width) / 2;
-        this.y = (screenHeight - this.height) / 2;
         this.open = false;
         this.activeWidgets.clear();
         this.rows.clear();
+        this.font = font;
     }
 
     public void openModal() {
@@ -82,6 +81,12 @@ public abstract class Modal {
         return Button.builder(text, btn -> action.run()).build();
     }
 
+    protected EditBox createEditBox(String placeholder, int maxLength) {
+        EditBox editBox = new EditBox(Minecraft.getInstance().font, 0, 0, 0, ELEMENT_HEIGHT, Component.literal(placeholder));
+        editBox.setMaxLength(maxLength);
+        return editBox;
+    }
+
     protected void addButton(Component text, Runnable action) {
         addButtonRow(createButton(text, action));
     }
@@ -95,52 +100,44 @@ public abstract class Modal {
         this.rows.add(new RowData(List.of(editBox), ELEMENT_HEIGHT));
     }
 
-    protected void addExpandingRow(AbstractWidget... widgets) {
-        this.rows.add(new RowData(List.of(widgets), -1));
-    }
-
     protected void addCustomRow(int height, AbstractWidget... widgets) {
         this.rows.add(new RowData(List.of(widgets), height));
     }
 
-    public void addSpacerRow() {
+    protected void addSpacerRow() {
         this.rows.add(new RowData(List.of(), 0));
     }
 
-    protected EditBox createEditbox(String title, int maxLength) {
-        EditBox editBox = new EditBox(Minecraft.getInstance().font, 0, 0, 0, ELEMENT_HEIGHT, Component.literal(title));
-        editBox.setMaxLength(maxLength);
-        return editBox;
+    protected void addPlayerListRow(PlayerSelectionWidget widget, int height) {
+        widget.setHeight(height); 
+        this.rows.add(new RowData(List.of(widget), height));
     }
 
 
-    // ==== Lifecyle ====
 
-    protected void rebuildLayout() {
-        this.activeWidgets.clear();
 
-        Font font = Minecraft.getInstance().font;
-        int availableWidth = this.width - (this.margin * 2);
-        
-        int availableHeightForContent = this.height - (this.margin * 2) - font.lineHeight - this.gap;
-        int fixedHeightTotal = 0;
-        int expandingRowsCount = 0;
+    private int measureHeight() {
+        int total = (this.margin * 2) + this.font.lineHeight + this.gap; // title area
 
         for (RowData row : rows) {
-            if (row.widgets().isEmpty()) { 
-                fixedHeightTotal += (ELEMENT_HEIGHT / 2) + gap;
-            } else if (row.height() > 0) { 
-                fixedHeightTotal += row.height() + gap;
-            } else if (row.height() == -1) {
-                expandingRowsCount++;
-                fixedHeightTotal += gap; 
+            if (row.widgets().isEmpty()) {
+                total += (ELEMENT_HEIGHT / 2) + this.gap; // spacer
+            } else {
+                total += row.height() + this.gap;
             }
         }
+        return total;
+    }
 
-        int expandHeight = expandingRowsCount > 0 ? 
-            Math.max(0, (availableHeightForContent - fixedHeightTotal) / expandingRowsCount) : 0;
+    private void rebuildLayout() {
+        this.activeWidgets.clear();
+        
+        this.height = measureHeight();
+        this.x = (screenWidth - this.width) / 2;
+        this.y = (screenHeight - this.height) / 2;
 
-        int currentY = this.y + this.margin + font.lineHeight + this.gap;
+        int availableWidth = this.width - (this.margin * 2);
+        int currentY = this.y + this.margin + this.font.lineHeight + this.gap;
 
         for (RowData row : rows) {
             if (row.widgets().isEmpty()) {
@@ -148,8 +145,6 @@ public abstract class Modal {
                 continue;
             }
 
-            int rowHeight = row.height() > 0 ? row.height() : expandHeight;
-            
             int numItems = row.widgets().size();
             int totalGapsWidth = (numItems - 1) * this.gap;
             int itemWidth = (availableWidth - totalGapsWidth) / numItems;
@@ -159,23 +154,22 @@ public abstract class Modal {
                 widget.setX(currentX);
                 widget.setY(currentY);
                 widget.setWidth(itemWidth);
-                widget.setHeight(rowHeight);
-                
+                widget.setHeight(row.height());
                 this.activeWidgets.add(widget);
                 currentX += itemWidth + this.gap;
             }
-            currentY += rowHeight + this.gap;
+            currentY += row.height() + this.gap;
         }
     }
 
 
-    public void render(GuiGraphics context, Font font, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         if (!this.open) return;
 
         context.fillGradient(0, 0, this.screenWidth, this.screenHeight, BG_DIM, BG_DIM);
         context.fill(this.x, this.y, this.x + this.width, this.y + this.height, MODAL_BG);
         context.renderOutline(this.x, this.y, this.width, this.height, MODAL_BORDER);
-        context.drawCenteredString(font, this.title, this.x + (this.width / 2), this.y + this.margin, 0xFFFFFFFF);
+        context.drawCenteredString(this.font, this.title, this.x + (this.width / 2), this.y + this.margin, 0xFFFFFFFF);
 
         for (AbstractWidget widget : activeWidgets) {
             widget.render(context, mouseX, mouseY, delta);
@@ -183,7 +177,7 @@ public abstract class Modal {
     }
 
 
-    protected boolean isInsideModal(int mx, int my) {
+    private boolean isInsideModal(int mx, int my) {
         return mx >= this.x && mx <= this.x + this.width && 
                my >= this.y && my <= this.y + this.height;
     }
@@ -197,7 +191,7 @@ public abstract class Modal {
     }
 
 
-private void cycleFocus(boolean reverse) {
+    private void cycleFocus(boolean reverse) {
         if (activeWidgets.isEmpty()) return;
 
         int currentIndex = activeWidgets.indexOf(this.focusedWidget);
@@ -229,7 +223,7 @@ private void cycleFocus(boolean reverse) {
 
     // ==== Event Handling ====
 
-public boolean mouseClicked(int mx, int my, int button) {
+    public boolean mouseClicked(int mx, int my, int button) {
         if (!open) return false;
         if (!isInsideModal(mx, my)) {
             closeModal();
@@ -289,20 +283,14 @@ public boolean mouseClicked(int mx, int my, int button) {
             closeModal();
             return true;
         }
-        for (AbstractWidget widget : activeWidgets) {
-            if (widget.keyPressed(keyCode, scanCode, modifiers)) return true;
-        }
-
         if (keyCode == GLFW.GLFW_KEY_TAB) {
             boolean shiftPressed = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
             cycleFocus(shiftPressed); 
             return true;
         }
         for (AbstractWidget widget : activeWidgets) {
-            if (widget.isFocused()) {
-                if (widget.keyPressed(keyCode, scanCode, modifiers)) {
-                    return true;
-                }
+            if (widget.isFocused() && widget.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
             }
         }
         return false;

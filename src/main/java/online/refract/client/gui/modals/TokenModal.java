@@ -1,5 +1,6 @@
 package online.refract.client.gui.modals;
 
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.gui.PlayerToken;
@@ -20,7 +21,6 @@ public class TokenModal extends Modal{
             actionHandler,
             "", 
             140, 
-            135,
             5,
             6
         );
@@ -28,8 +28,8 @@ public class TokenModal extends Modal{
     }
 
     @Override
-    public void init(int screenWidth, int screenHeight) {
-        super.init(screenWidth, screenHeight);
+    public void init(int screenWidth, int screenHeight, Font font) {
+        super.init(screenWidth, screenHeight, font);
 
 
 
@@ -44,6 +44,12 @@ public class TokenModal extends Modal{
         addButton(Component.literal("Teleport to House"), () -> {
             closeModal();
         });
+
+        addButton(Component.literal("Start Vote"), () -> {
+            closeModal();
+        });
+
+        addSpacerRow();
 
         addButton(Component.literal("Link Player"), () -> {
             this.linkPlayerModal.openModal();

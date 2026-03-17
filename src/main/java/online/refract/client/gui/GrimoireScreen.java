@@ -5,6 +5,7 @@ import online.refract.client.SttkClient;
 import online.refract.client.gui.GuiScale.MouseCoords;
 import online.refract.client.gui.modals.LinkPlayerModal;
 import online.refract.client.gui.modals.TokenModal;
+import online.refract.client.gui.modals.TownModal;
 import online.refract.client.gui.objects.Modal;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class GrimoireScreen extends Screen {
 
     private final LinkPlayerModal linkPlayerModal = registerModal(new LinkPlayerModal(actionHandler));
     private final TokenModal tokenModal = registerModal(new TokenModal(actionHandler, linkPlayerModal));
+    private final TownModal townModal = registerModal(new TownModal(actionHandler));
     // private final OrderModal orderModal = registerModal(new OrderModal(actionHandler));
     // private final ResetModal resetModal = registerModal(new ResetModal(actionHandler));
     // private final TimerModal timerModal = registerModal(new TimerModal(actionHandler));
@@ -52,7 +54,7 @@ public class GrimoireScreen extends Screen {
         setupGlobalButtons();
 
         for (Modal modal : modals) {
-            modal.init(this.width, this.height);
+            modal.init(this.width, this.height, this.font);
         }
 
         super.init();
@@ -73,12 +75,12 @@ public class GrimoireScreen extends Screen {
         GuiScale.disableGuiScale(context);
 
         tokenRenderer.calculateTokenLayout(players.size(), GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
-        tokenRenderer.drawTokenCircle(context, font, players, GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
+        tokenRenderer.drawTokenCircle(context, this.font, players, GuiScale.getUnscaledWidth(), GuiScale.getUnscaledHeight());
 
         GuiScale.enableGuiScale(context);
 
         for (Modal modal : modals) {
-            modal.render(context, font, mouseX, mouseY, delta);
+            modal.render(context, mouseX, mouseY, delta);
         }
     }
 
@@ -92,14 +94,12 @@ public class GrimoireScreen extends Screen {
         int y = padding;
         int gap = 22;
         
-        // addGlobalBtn("✋ Vote", x, y, () -> actionHandler.startVote());
-
-
-        // addGlobalBtn("⏳ Timer", screenWidth - btnWidth - padding * 2, y, () -> timerModal.openModal());
-
+        addGlobalBtn("🏘 Town", screenWidth - btnWidth - (padding * 2), this.height - y - 20, () -> townModal.openModal());
 
     }
 
+
+    
 
 
     private void addGlobalBtn(String label, int x, int y, Runnable action) {

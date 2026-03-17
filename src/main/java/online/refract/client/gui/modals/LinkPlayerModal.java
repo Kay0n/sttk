@@ -1,9 +1,7 @@
 package online.refract.client.gui.modals;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.gui.objects.Modal;
@@ -14,12 +12,12 @@ public class LinkPlayerModal extends Modal {
     private PlayerSelectionWidget playerList;
 
     public LinkPlayerModal(ClientActionHandler actionHandler) {
-        super(actionHandler, "Link Player", 200, 210);
+        super(actionHandler, "Link Player", 200);
     }
 
     @Override
-    public void init(int screenWidth, int screenHeight) {
-        super.init(screenWidth, screenHeight);
+    public void init(int screenWidth, int screenHeight, Font font) {
+        super.init(screenWidth, screenHeight, font);
 
         this.playerList = new PlayerSelectionWidget(Minecraft.getInstance());
 
@@ -43,7 +41,7 @@ public class LinkPlayerModal extends Modal {
         this.playerList.addPlayer("Charlie");
         this.playerList.addPlayer("None");
 
-        addExpandingRow(this.playerList);
+        addCustomRow(100, this.playerList);
 
 
         

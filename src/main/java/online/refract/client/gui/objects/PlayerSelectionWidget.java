@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 public class PlayerSelectionWidget extends ObjectSelectionList<PlayerSelectionWidget.PlayerEntry> {
     
     public PlayerSelectionWidget(Minecraft minecraft) {
-        super(minecraft, 0, 0, 0, 20); // Width and height are dynamically set by Modal later
+        super(minecraft, 0, 0, 0, 20); // width and height dynamically set by Modal later
     }
 
     public void addPlayer(String playerName) {
