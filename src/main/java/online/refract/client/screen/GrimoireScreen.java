@@ -30,9 +30,6 @@ public class GrimoireScreen extends Screen {
     private final LinkPlayerModal linkPlayerModal = registerModal(new LinkPlayerModal(actionHandler));
     private final TokenModal tokenModal = registerModal(new TokenModal(actionHandler, linkPlayerModal));
     private final TownModal townModal = registerModal(new TownModal(actionHandler));
-    // private final OrderModal orderModal = registerModal(new OrderModal(actionHandler));
-    // private final ResetModal resetModal = registerModal(new ResetModal(actionHandler));
-    // private final TimerModal timerModal = registerModal(new TimerModal(actionHandler));
 
 
 
@@ -94,6 +91,8 @@ public class GrimoireScreen extends Screen {
         int y = padding;
         int gap = 22;
         
+
+        addGlobalBtn("Distribute Roles", screenWidth - btnWidth - (padding * 2), this.height - y - 40, () -> townModal.openModal());
         addGlobalBtn("🏘 Town", screenWidth - btnWidth - (padding * 2), this.height - y - 20, () -> townModal.openModal());
 
     }

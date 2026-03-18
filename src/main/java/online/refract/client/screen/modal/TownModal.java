@@ -20,10 +20,11 @@ public class TownModal extends Modal {
         super.init(screenWidth, screenHeight, font);
 
         this.townNameBox = createEditBox("Town Name", 32);
-        this.passwordBox = createEditBox("Password", 32);
+        this.passwordBox = createEditBox("Password", 32, true);
 
         addEditBoxRow(this.townNameBox);
         addEditBoxRow(this.passwordBox);
+        
         addSpacerRow();
         
         addButton(Component.literal("Connect"), () -> {

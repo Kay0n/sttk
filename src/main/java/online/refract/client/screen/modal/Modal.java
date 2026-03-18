@@ -10,6 +10,9 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
+
 import org.lwjgl.glfw.GLFW;
 import online.refract.client.ClientActionHandler;
 
@@ -81,11 +84,23 @@ public abstract class Modal {
         return Button.builder(text, btn -> action.run()).build();
     }
 
+
     protected EditBox createEditBox(String placeholder, int maxLength) {
+        return createEditBox(placeholder, maxLength, false);
+    }
+    protected EditBox createEditBox(String placeholder, int maxLength, boolean isPassword) {
         EditBox editBox = new EditBox(Minecraft.getInstance().font, 0, 0, 0, ELEMENT_HEIGHT, Component.literal(placeholder));
         editBox.setMaxLength(maxLength);
+        editBox.setHint(Component.literal(placeholder));
+        if (isPassword) {
+            editBox.setFormatter((text, cursorPos) -> {
+                String masked = "*".repeat(text.length());
+                return FormattedCharSequence.forward(masked, Style.EMPTY);
+            });
+        }
         return editBox;
     }
+
 
     protected void addButton(Component text, Runnable action) {
         addButtonRow(createButton(text, action));
