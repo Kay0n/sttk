@@ -47,14 +47,20 @@ public class GrimoireScreen extends Screen {
         
         if (status == TownConnectionStatus.INVALID_TOWN) {
             globalButtons.add(makeButton("Reconnect to Town", width - 105, height - 42, () -> townModal.openModal()));
-        } else if (status == TownConnectionStatus.CONNECTION_LOST) {
+        } 
+        else if (status == TownConnectionStatus.CONNECTION_LOST) {
             globalButtons.add(makeButton("Reconnect to Town", width - 105, height - 42, () -> townModal.openModal()));
-        } else if (status == TownConnectionStatus.DISCONNECTED) {
+        } 
+        else if (status == TownConnectionStatus.DISCONNECTED) {
             globalButtons.add(makeButton("Connect to Town", width - 74, height - 42, () -> townModal.openModal()));
-        } else if (status == TownConnectionStatus.CONNECTED) {
+        } 
+        else if (status == TownConnectionStatus.CONNECTED) {
             globalButtons.add(makeButton("Distribute Roles", width - 74, height - 42, () -> tokenModal.openModal()));
             globalButtons.add(makeButton("🏘 Town",          width - 74, height - 22, () -> townModal.openModal()));
             globalButtons.add(makeButton("Change Town",     width - 74, height - 2, () -> townModal.openModal()));
+        } 
+        else {
+            globalButtons.add(makeButton("Connect to Town", width - 74, height - 42, () -> townModal.openModal()));
         }
         globalButtons.forEach(this::addRenderableWidget);
     }
@@ -78,6 +84,7 @@ public class GrimoireScreen extends Screen {
         tokenRenderer.render(gfx, font, ClocktowerClientState.getState().getPlayers(), width, height);
 
         modals.forEach(m -> m.render(gfx, mouseX, mouseY, delta));
+        super.render(gfx, mouseX, mouseY, delta);
     }
 
 

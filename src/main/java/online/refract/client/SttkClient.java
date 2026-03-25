@@ -45,9 +45,9 @@ public class SttkClient implements ClientModInitializer {
             }
         });
 
-        ServerPlayNetworking.registerGlobalReceiver(
-            S2CPackets.SyncStateS2CPayload.ID,
-            (payload, context) -> { ClocktowerClientState.onStateSync(payload); }
-        );
+        // ServerPlayNetworking.registerGlobalReceiver(
+        //     S2CPackets.SyncStateS2CPayload.ID,
+        //     (payload, context) -> { ClocktowerClientState.onStateSync(payload); }
+        // );
     }
 }
