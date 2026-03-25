@@ -5,6 +5,10 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import online.refract.game.server.ModCommands;
+import online.refract.game.server.ModLogic;
+import online.refract.network.SttkPayloads;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

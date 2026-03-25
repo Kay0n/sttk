@@ -1,11 +1,10 @@
-package online.refract.client.gui.modals;
+package online.refract.client.gui.grimiore;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
-import online.refract.client.gui.objects.Modal;
-import online.refract.client.gui.objects.PlayerSelectionWidget;
+import online.refract.client.gui.components.Modal;
 
 public class LinkPlayerModal extends Modal {
 

@@ -1,4 +1,4 @@
-package online.refract;
+package online.refract.game.state;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package online.refract;
+package online.refract.game.state;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

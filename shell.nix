@@ -13,8 +13,9 @@ mkShell {
   buildInputs = libs;
   LD_LIBRARY_PATH = lib.makeLibraryPath libs;
 
-  # shellHook = ''
-  #   export JAVA_HOME=${jetbrains.jdk-no-jcef}
-  #   export PATH=$JAVA_HOME/bin:$PATH
-  # '';
+  shellHook = ''
+    run() {
+      ./gradlew runClient
+    }
+  '';
 }

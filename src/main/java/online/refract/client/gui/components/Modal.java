@@ -1,4 +1,4 @@
-package online.refract.client.gui.objects;
+package online.refract.client.gui.components;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +15,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 import org.lwjgl.glfw.GLFW;
 import online.refract.client.ClientActionHandler;
+import online.refract.client.gui.grimiore.PlayerSelectionWidget;
 
 public abstract class Modal {
 

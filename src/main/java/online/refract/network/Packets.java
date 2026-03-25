@@ -4,8 +4,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import online.refract.ClocktowerState;
 import online.refract.Sttk;
+import online.refract.game.state.ClocktowerState;
 
 public class Packets {
 

@@ -5,7 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
-import online.refract.client.gui.GrimoireScreen;
+import online.refract.client.gui.grimiore.GrimoireScreen;
 
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;

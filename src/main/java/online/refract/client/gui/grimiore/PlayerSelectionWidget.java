@@ -1,4 +1,4 @@
-package online.refract.client.gui.objects;
+package online.refract.client.gui.grimiore;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

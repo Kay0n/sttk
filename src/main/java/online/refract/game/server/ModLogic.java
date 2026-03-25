@@ -1,4 +1,4 @@
-package online.refract;
+package online.refract.game.server;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;

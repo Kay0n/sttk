@@ -1,10 +1,10 @@
-package online.refract.client.gui.modals;
+package online.refract.client.gui.grimiore;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
-import online.refract.client.gui.objects.Modal;
+import online.refract.client.gui.components.Modal;
 
 public class TownModal extends Modal {
 
