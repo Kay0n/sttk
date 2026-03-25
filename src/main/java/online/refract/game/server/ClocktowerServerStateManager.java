@@ -27,15 +27,17 @@ public class ClocktowerServerStateManager {
 
 
     public static void setVotingActive(boolean active) {
-        currentState.isVoteActive = active;
+        currentState = currentState.withVoteActive(active);
         syncToAllPlayers();
         LOGGER.debug("Vote state updated to: {}", active);
     }
 
-    public static void linkUsername(String playerId, String minecraftUsername) {
-        for (ClocktowerPlayer player : currentState.players) {
-            if (player.uuid.toString().equals(playerId)) {
-                player.linkedMinecraftUsername = minecraftUsername;
+    public static void linkUsername(ClocktowerPlayer playerId, String minecraftUsername) {
+        for (ClocktowerPlayer player : currentState.players()) {
+            if (player.uuid().toString().equals(playerId)) {
+                currentState = currentState.withUpdatedPlayer(player.uuid(), p ->
+                    p.withLinkedMinecraftUsername(minecraftUsername)
+                );
                 syncToAllPlayers();
                 LOGGER.debug("Linked username for player {}: {}", playerId, minecraftUsername);
                 return;
@@ -58,7 +60,7 @@ public class ClocktowerServerStateManager {
 
     // Sync state to all players
     private static void syncToAllPlayers() {
-        currentState.townConnectionStatus = connectionStatus;
+        currentState = currentState.withTownConnectionStatus(connectionStatus);
     }
 
 }

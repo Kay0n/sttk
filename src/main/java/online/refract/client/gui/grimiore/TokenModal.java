@@ -51,7 +51,7 @@ public class TokenModal extends Modal{
 
     public void openModal(ClocktowerPlayer player) {
         this.selectedPlayer = player;
-        this.title = player.name;
+        this.title = player.name();
         super.openModal();
     }
 

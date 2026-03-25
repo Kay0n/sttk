@@ -13,8 +13,7 @@ public class ClientActionHandler {
     }
     
     public void sendLinkUsername(ClocktowerPlayer player, String minecraftUsername) {
-        String playerId = player.uuid.toString();
-        ClientPlayNetworking.send(new C2SPackets.LinkUsernamePayload(playerId, minecraftUsername));
+        ClientPlayNetworking.send(new C2SPackets.LinkUsernamePayload(player, minecraftUsername));
     }
     
     

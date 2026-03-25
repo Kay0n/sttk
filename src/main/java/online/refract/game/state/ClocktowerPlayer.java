@@ -4,58 +4,54 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import online.refract.game.state.Enums.Alignment;
 
 import java.util.UUID;
 
 import static online.refract.game.state.Enums.Alignment;
 
 
-public class ClocktowerPlayer {
-
-    public UUID uuid;
-    public String name;
-    public String roleName;
-    public Alignment alignment;
-    public String linkedMinecraftUsername;
-
-    public boolean isDead;
-    public boolean hasUsedGhostVote;
-    public boolean isNominated;
-
-
+public record ClocktowerPlayer(
+    UUID uuid,
+    String name,
+    String roleName,
+    Alignment alignment,
+    String linkedMinecraftUsername,
+    boolean isDead,
+    boolean hasUsedGhostVote,
+    boolean isNominated
+) {
     public ClocktowerPlayer(String name) {
-        this.uuid = UUID.randomUUID();
-        this.name = name;
-        this.roleName = null;
-        this.alignment = Alignment.UNKNOWN;
-        this.linkedMinecraftUsername = null;
-        this.isDead = false;
-        this.hasUsedGhostVote = false;
-        this.isNominated = false;
+        this(
+            UUID.randomUUID(),
+            name,
+            null,
+            Alignment.UNKNOWN,
+            null,
+            false,
+            false,
+            false
+        );
     }
 
-    public ClocktowerPlayer(
-        UUID uuid,
-        String name,
-        String roleName,
-        Alignment alignment,
-        String linkedMinecraftUsername,
-        boolean isDead,
-        boolean hasUsedGhostVote,
-        boolean isNominated
-    ) {
-        this.uuid = uuid;
-        this.name = name;
-        this.roleName = roleName;
-        this.alignment = alignment;
-        this.linkedMinecraftUsername = linkedMinecraftUsername;
-        this.isDead = isDead;
-        this.hasUsedGhostVote = hasUsedGhostVote;
-        this.isNominated = isNominated;
+    public ClocktowerPlayer withLinkedMinecraftUsername(String username) {
+        return new ClocktowerPlayer(
+            uuid,
+            name,
+            roleName,
+            alignment,
+            username, 
+            isDead,
+            hasUsedGhostVote,
+            isNominated
+        );
     }
+
+
+
 
 
     public static final Codec<ClocktowerPlayer> CODEC =
@@ -72,7 +68,7 @@ public class ClocktowerPlayer {
         ).apply(instance, ClocktowerPlayer::new));
 
 
-    public static final StreamCodec<FriendlyByteBuf, ClocktowerPlayer> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerPlayer> STREAM_CODEC = StreamCodec.composite(
             UUIDUtil.STREAM_CODEC, p -> p.uuid,
             ByteBufCodecs.STRING_UTF8, p -> p.name,
             ByteBufCodecs.STRING_UTF8, p -> p.roleName,

@@ -59,7 +59,7 @@ public class TokenRenderer {
         for (PositionedToken pt : positioned)
             gfx.blit(RenderPipelines.GUI_TEXTURED, TOKEN_TEXTURE, pt.x() - tokenSize / 2, pt.y() - tokenSize / 2, 0f, 0f, tokenSize, tokenSize, tokenSize, tokenSize, 0xAAFFFFFF);
         for (PositionedToken pt : positioned)
-            gfx.drawString(font, pt.player().name, pt.x() - font.width(pt.player().name) / 2, pt.y() - (tokenSize / 2) + 4, LABEL_COLOR);
+            gfx.drawString(font, pt.player().name(), pt.x() - font.width(pt.player().name()) / 2, pt.y() - (tokenSize / 2) + 4, LABEL_COLOR);
     }
 
 

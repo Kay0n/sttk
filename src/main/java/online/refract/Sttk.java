@@ -42,7 +42,7 @@ public class Sttk implements ModInitializer {
         });
 
         ServerPlayNetworking.registerGlobalReceiver(C2SPackets.LinkUsernamePayload.ID, (payload, context) -> {
-            ClocktowerServerStateManager.linkUsername(payload.playerId(), payload.minecraftUsername());
+            ClocktowerServerStateManager.linkUsername(payload.playerToLink(), payload.minecraftUsername());
         });
     }
 }

@@ -19,7 +19,7 @@ public class ClocktowerClientState {
         ClocktowerState newState = payload.state();
         state = newState;
         
-        TownConnectionStatus newStatus = newState.townConnectionStatus;
+        TownConnectionStatus newStatus = newState.townConnectionStatus();
         // Notify UI only if connection status changed
         if (newStatus != previousConnectionStatus && grimoireScreen != null) {
             previousConnectionStatus = newStatus;

@@ -43,7 +43,7 @@ public class LinkPlayerModal extends Modal {
                             return;
                         }
                         this.actionHandler.sendLinkUsername(linkingPlayer, title);
-                        this.actionHandler.debug("Linking player: " + linkingPlayer.name + " with username: " + selectedPlayer.getName());
+                        this.actionHandler.debug("Linking player: " + linkingPlayer.name() + " with username: " + selectedPlayer.getName());
                     }
                     closeModal();
                 }

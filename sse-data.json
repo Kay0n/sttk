@@ -1,5 +1,6 @@
+❯ curl -N https: //botc.games/api/town/stream/test
 data: {
-    "currentGameId": "ca012d3f-d73f-40c2-a373-2e9c143d505f",
+    "currentGameId": "e978d3f2-22ac-4e4e-85c6-43731a79f8bf",
     "gameState": {
         "currentDay": 1,
         "currentPhase": "Night",
@@ -393,7 +394,7 @@ data: {
                 "x": 703.5,
                 "y": 0
             },
-            "alive": true,
+            "alive": false,
             "ghostvote": true
         },
         {
@@ -481,16 +482,16 @@ data: {
                     "player": "Player 6",
                     "onTheBlock": false,
                     "position": {
-                        "x": 973.5,
-                        "y": 156
+                        "x": 974.3333740234375,
+                        "y": 155.16668701171875
                     }
                 }
             ],
             "position": {
-                "x": 973.5,
-                "y": 156
+                "x": 974.3333740234375,
+                "y": 155.16668701171875
             },
-            "alive": true,
+            "alive": false,
             "ghostvote": true
         },
         {
@@ -544,7 +545,7 @@ data: {
                     "name": "Undertaker",
                     "id": "undertaker_QvsaOzJf",
                     "type": "Townsfolk",
-                    "alignment": "Good",
+                    "alignment": "Evil",
                     "icon": "https://cdn.botc.games/images/townsfolk/undertaker.webp",
                     "ability": "Each night*, you learn which character died by execution today.",
                     "firstNightReminder": "",
@@ -1208,9 +1209,3 @@ data: {
     },
     "tokensPositioned": true
 }
-
-
-
-: heartbeat
-
-: heartbeat

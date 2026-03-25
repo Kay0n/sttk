@@ -26,7 +26,7 @@ public class TownModal extends Modal {
         addEditBoxRow(this.townNameBox);
         
         ClocktowerState state = ClocktowerClientState.getState();
-        TownConnectionStatus status = state.townConnectionStatus;
+        TownConnectionStatus status = state.townConnectionStatus();
         
         // Update modal title with status message
         Component titleText = Component.nullToEmpty("Connect to Town");
