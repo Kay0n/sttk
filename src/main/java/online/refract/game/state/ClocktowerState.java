@@ -6,59 +6,88 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.StringRepresentable; 
+import online.refract.game.state.Enums.GamePhase;
+import online.refract.game.state.Enums.TownConnectionStatus;
 
 public class ClocktowerState {
 
     public List<ClocktowerPlayer> players;
+    public List<ClocktowerRole> roles;
+    public int currentDay;
+    public GamePhase currentPhase;
+    public String townName;
+    public String scriptEdition;
     public boolean isVoteActive;
-    public TimeOfDay timeOfDay;
+    public TownConnectionStatus townConnectionStatus;
 
+    public static final ClocktowerState EMPTY = new ClocktowerState(
+        List.of(),
+        List.of(),
+        0,
+        GamePhase.DAY,
+        "Unknown",
+        "Unknown",
+        false,
+        TownConnectionStatus.DISCONNECTED
+    );
 
-    public ClocktowerState(List<ClocktowerPlayer> players, boolean isVoteActive, TimeOfDay timeOfDay){
-        this.players = new ArrayList<>(players); // wrap to keep mutable
+    public ClocktowerState(
+        List<ClocktowerPlayer> players,
+        List<ClocktowerRole> roles,
+        int currentDay,
+        GamePhase currentPhase,
+        String townName,
+        String scriptEdition,
+        boolean isVoteActive,
+        TownConnectionStatus townConnectionStatus
+    ) {
+        this.players = new ArrayList<>(players);
+        this.roles = new ArrayList<>(roles);
+        this.currentDay = currentDay;
+        this.currentPhase = currentPhase;
+        this.townName = townName;
+        this.scriptEdition = scriptEdition;
         this.isVoteActive = isVoteActive;
-        this.timeOfDay = timeOfDay;
+        this.townConnectionStatus = townConnectionStatus;
     }
 
 
     public static final Codec<ClocktowerState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.list(ClocktowerPlayer.CODEC).fieldOf("players").forGetter(s -> s.players),
-        Codec.BOOL.fieldOf("is_vote_active").forGetter(s -> s.isVoteActive),
-        TimeOfDay.CODEC.fieldOf("time_of_day").forGetter(s -> s.timeOfDay)
+        Codec.list(ClocktowerRole.CODEC).fieldOf("roles").forGetter(s ->s.roles),
+        Codec.INT.optionalFieldOf("current_day", 0).forGetter(s -> s.currentDay),
+        GamePhase.CODEC.optionalFieldOf("current_phase", GamePhase.DAY).forGetter(s -> s.currentPhase),
+        Codec.STRING.optionalFieldOf("town_name", "Unknown").forGetter(s -> s.townName),
+        Codec.STRING.optionalFieldOf("script_edition", "Unknown").forGetter(s -> s.scriptEdition),
+        Codec.BOOL.optionalFieldOf("is_vote_active", false).forGetter(s -> s.isVoteActive),
+        TownConnectionStatus.CODEC.optionalFieldOf("town_connection_status", TownConnectionStatus.DISCONNECTED).forGetter(s -> s.townConnectionStatus)
     ).apply(instance, ClocktowerState::new));
 
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerState> STREAM_CODEC = StreamCodec.composite(
-        ClocktowerPlayer.STREAM_CODEC.apply(ByteBufCodecs.list()), 
-        s -> s.players,
-        // dummy state for client, only care about players
-        (players) -> new ClocktowerState(players, false, TimeOfDay.DAY)
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerState> STREAM_CODEC = StreamCodec.of(
+        (buf, state) -> {
+            ClocktowerPlayer.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, state.players);
+            ClocktowerRole.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, state.roles);
+            ByteBufCodecs.VAR_INT.encode(buf, state.currentDay);
+            GamePhase.STREAM_CODEC.encode(buf, state.currentPhase);
+            ByteBufCodecs.STRING_UTF8.encode(buf, state.townName);
+            ByteBufCodecs.STRING_UTF8.encode(buf, state.scriptEdition);
+            ByteBufCodecs.BOOL.encode(buf, state.isVoteActive);
+            TownConnectionStatus.STREAM_CODEC.encode(buf, state.townConnectionStatus);
+        },
+        buf -> new ClocktowerState(
+            ClocktowerPlayer.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
+            ClocktowerRole.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
+            ByteBufCodecs.VAR_INT.decode(buf),
+            GamePhase.STREAM_CODEC.decode(buf),
+            ByteBufCodecs.STRING_UTF8.decode(buf),
+            ByteBufCodecs.STRING_UTF8.decode(buf),
+            ByteBufCodecs.BOOL.decode(buf),
+            TownConnectionStatus.STREAM_CODEC.decode(buf)
+        )
     );
-
-
-    public enum TimeOfDay implements StringRepresentable {
-        DAY("day"),
-        EVENING("evening"),
-        NIGHT("night");
-
-        public static final Codec<TimeOfDay> CODEC = StringRepresentable.fromEnum(TimeOfDay::values);
-        
-        private final String name;
-
-        TimeOfDay(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getSerializedName() {
-            return this.name;
-        }
-    }
 }
-
-
-//  curl -N "https://botc.games/api/town/stream/test?password=pass"
