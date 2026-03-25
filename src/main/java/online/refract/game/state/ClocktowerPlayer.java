@@ -25,16 +25,6 @@ public class ClocktowerPlayer {
     public boolean hasUsedGhostVote;
     public boolean isNominated;
 
-    public ClocktowerPlayer(UUID uuid, String name) {
-        this.uuid = uuid;
-        this.name = name;
-        this.roleName = null;
-        this.alignment = Alignment.UNKNOWN;
-        this.linkedMinecraftUsername = null;
-        this.isDead = false;
-        this.hasUsedGhostVote = false;
-        this.isNominated = false;
-    }
 
     public ClocktowerPlayer(String name) {
         this.uuid = UUID.randomUUID();

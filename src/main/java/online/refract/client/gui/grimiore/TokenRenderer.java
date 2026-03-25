@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import online.refract.game.state.ClocktowerPlayer;
+
 public class TokenRenderer {
     private static final ResourceLocation TOKEN_TEXTURE = ResourceLocation.fromNamespaceAndPath("sttk", "textures/gui/token-greyscale.png");
     private static final int MAX_TOKEN_SIZE = 100;
@@ -19,7 +21,7 @@ public class TokenRenderer {
     private int tokenSize;
     private int layoutRadius;
 
-    private record PositionedToken(PlayerToken player, int x, int y) {}
+    private record PositionedToken(ClocktowerPlayer player, int x, int y) {}
 
 
 
@@ -34,7 +36,7 @@ public class TokenRenderer {
 
 
 
-    private List<PositionedToken> layout(List<PlayerToken> players, int width, int height) {
+    private List<PositionedToken> layout(List<ClocktowerPlayer> players, int width, int height) {
         calculateLayout(players.size(), width, height);
         int cx = width / 2, cy = height / 2;
         double step = 2 * Math.PI / players.size();
@@ -50,7 +52,7 @@ public class TokenRenderer {
     
 
 
-    public void render(GuiGraphics gfx, Font font, List<PlayerToken> players, int width, int height) {
+    public void render(GuiGraphics gfx, Font font, List<ClocktowerPlayer> players, int width, int height) {
         if (players.isEmpty()) return;
         List<PositionedToken> positioned = layout(players, width, height);
 
@@ -62,8 +64,8 @@ public class TokenRenderer {
 
 
 
-    @Nullable
-    public PlayerToken hitTest(List<PlayerToken> players, double mouseX, double mouseY, int width, int height) {
+ @Nullable
+  public ClocktowerPlayer hitTest(List<ClocktowerPlayer> players, double mouseX, double mouseY, int width, int height) {
         if (players.isEmpty()) return null;
         List<PositionedToken> positioned = layout(players, width, height);
         double r = tokenSize / 2.0;

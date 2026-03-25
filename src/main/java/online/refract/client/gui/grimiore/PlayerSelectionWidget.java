@@ -7,13 +7,24 @@ import net.minecraft.network.chat.Component;
 
 public class PlayerSelectionWidget extends ObjectSelectionList<PlayerSelectionWidget.PlayerEntry> {
     
-    public PlayerSelectionWidget(Minecraft minecraft) {
-        super(minecraft, 0, 0, 0, 20); // width and height dynamically set by Modal later
+    public PlayerSelectionWidget() {
+        super(Minecraft.getInstance(), 0, 0, 0, 20); // width and height dynamically set by Modal later
     }
 
     public void addPlayer(String playerName) {
         this.addEntry(new PlayerEntry(playerName));
+
     }
+
+    public void clearPlayers() {
+        this.clearEntries();
+    }
+
+
+    public PlayerEntry getSelectedPlayer() {
+        return this.getSelected();
+    }
+
 
     @Override
     public int getRowWidth() {

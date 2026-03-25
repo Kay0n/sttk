@@ -1,31 +1,23 @@
 package online.refract.client;
 
-import java.util.ArrayList;
-import java.util.UUID;
-
-import online.refract.network.NetworkEnums.GameActionType;
-import online.refract.network.ServerBoundPackets.GameActionPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import online.refract.game.state.ClocktowerPlayer;
+import online.refract.network.C2SPackets;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 public class ClientActionHandler {
 
-
-    public void send(CustomPacketPayload payload){
+    
+    public void sendToggleVote(boolean active) {
+        ClientPlayNetworking.send(new C2SPackets.ToggleVotePayload(active));
     }
- 
-
-
-
-
-    public void homeTeleport(UUID playerUUID) {
-        debug("Home Teleport: " + playerUUID.toString());
+    
+    public void sendLinkUsername(ClocktowerPlayer player, String minecraftUsername) {
+        String playerId = player.uuid.toString();
+        ClientPlayNetworking.send(new C2SPackets.LinkUsernamePayload(playerId, minecraftUsername));
     }
-
-
-
+    
+    
     public void debug(String msg) {
         if (Minecraft.getInstance().player != null) {
             Minecraft.getInstance().player.displayClientMessage(
@@ -33,9 +25,4 @@ public class ClientActionHandler {
         }
     }
 
-
-    
-
-
-    
 }

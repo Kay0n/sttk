@@ -1,9 +1,12 @@
 package online.refract.client.gui.grimiore;
 
-import online.refract.Sttk;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.SttkClient;
+import online.refract.client.ClocktowerClientState;
 import online.refract.client.gui.components.Modal;
+import online.refract.game.state.ClocktowerPlayer;
+import online.refract.game.state.ClocktowerState;
+import online.refract.game.state.Enums.TownConnectionStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +17,8 @@ import net.minecraft.network.chat.Component;
 
 public class GrimoireScreen extends Screen {
 
-
     private final ClientActionHandler actionHandler = new ClientActionHandler();
     private final TokenRenderer tokenRenderer = new TokenRenderer();
-    private final List<PlayerToken> players = new ArrayList<>();
     private final List<Button> globalButtons = new ArrayList<>();
     private final List<Modal> modals = new ArrayList<>();
 
@@ -25,22 +26,44 @@ public class GrimoireScreen extends Screen {
     private final TokenModal tokenModal = registerModal(new TokenModal(actionHandler, linkPlayerModal));
     private final TownModal townModal = registerModal(new TownModal(actionHandler));
 
+
+
     public GrimoireScreen() {
         super(Component.nullToEmpty("Grimoire"));
-        for (int i = 0; i < Sttk.SERVER_PLAYER_COUNT; i++) {
-            players.add(new PlayerToken(i + 1, "Player " + (i + 1), "User" + (i + 1)));
+    }
+
+
+
+    public void onStateUpdated() {
+        rebuildButtons();
+    }
+
+
+
+    private void rebuildButtons() {
+        globalButtons.clear();
+        ClocktowerState state = ClocktowerClientState.getState();
+        TownConnectionStatus status = state.townConnectionStatus;
+        
+        if (status == TownConnectionStatus.INVALID_TOWN) {
+            globalButtons.add(makeButton("Reconnect to Town", width - 105, height - 42, () -> townModal.openModal()));
+        } else if (status == TownConnectionStatus.CONNECTION_LOST) {
+            globalButtons.add(makeButton("Reconnect to Town", width - 105, height - 42, () -> townModal.openModal()));
+        } else if (status == TownConnectionStatus.DISCONNECTED) {
+            globalButtons.add(makeButton("Connect to Town", width - 74, height - 42, () -> townModal.openModal()));
+        } else if (status == TownConnectionStatus.CONNECTED) {
+            globalButtons.add(makeButton("Distribute Roles", width - 74, height - 42, () -> tokenModal.openModal()));
+            globalButtons.add(makeButton("🏘 Town",          width - 74, height - 22, () -> townModal.openModal()));
+            globalButtons.add(makeButton("Change Town",     width - 74, height - 2, () -> townModal.openModal()));
         }
+        globalButtons.forEach(this::addRenderableWidget);
     }
 
 
 
     @Override
     protected void init() {
-        globalButtons.clear();
-        globalButtons.add(makeButton("Distribute Roles", width - 74, height - 42, () -> townModal.openModal()));
-        globalButtons.add(makeButton("🏘 Town",          width - 74, height - 22, () -> townModal.openModal()));
-        globalButtons.forEach(this::addRenderableWidget);
-
+        rebuildButtons();
         modals.forEach(m -> m.init(width, height, font));
         super.init();
     }
@@ -52,12 +75,12 @@ public class GrimoireScreen extends Screen {
         boolean anyModalOpen = modals.stream().anyMatch(Modal::isOpen);
         globalButtons.forEach(b -> b.active = !anyModalOpen);
 
-        tokenRenderer.render(gfx, font, players, width, height);
+        tokenRenderer.render(gfx, font, ClocktowerClientState.getState().getPlayers(), width, height);
 
         modals.forEach(m -> m.render(gfx, mouseX, mouseY, delta));
     }
 
-    
+
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -68,17 +91,14 @@ public class GrimoireScreen extends Screen {
             if (b.mouseClicked(mouseX, mouseY, button)) return true;
 
         if (button == 0) {
-            PlayerToken clickedPlayer = tokenRenderer.hitTest(players, mouseX, mouseY, width, height);
+            ClocktowerPlayer clickedPlayer = tokenRenderer.hitTest(ClocktowerClientState.getState().getPlayers(), mouseX, mouseY, width, height);
             if (clickedPlayer != null) {
                 tokenModal.openModal(clickedPlayer);
                 return true;
             }
         }
-
         return false;
     }
-
-
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
@@ -119,8 +139,6 @@ public class GrimoireScreen extends Screen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-
-    
     private Button makeButton(String label, int x, int y, Runnable action) {
         return Button.builder(Component.nullToEmpty(label), b -> action.run())
                 .bounds(x, y, 70, 20).build();
@@ -131,3 +149,4 @@ public class GrimoireScreen extends Screen {
         return modal;
     }
 }
+

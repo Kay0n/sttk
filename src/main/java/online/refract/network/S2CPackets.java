@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import online.refract.Sttk;
 import online.refract.game.state.ClocktowerState;
 
-public class Packets {
+public class S2CPackets {
 
 
     public record SyncStateS2CPayload(ClocktowerState state) implements CustomPacketPayload {
@@ -20,9 +20,7 @@ public class Packets {
         );
 
         @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return ID;
-        }
+        public Type<? extends CustomPacketPayload> type() { return ID; }
     }
 
     

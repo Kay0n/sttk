@@ -38,7 +38,6 @@ public abstract class Modal {
     private final List<AbstractWidget> activeWidgets = new ArrayList<>();
     private AbstractWidget focusedWidget = null;
 
-    // height of -1 means "expand to fill remaining space"
     protected record RowData(List<AbstractWidget> widgets, int height) {}
 
 

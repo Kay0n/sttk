@@ -30,18 +30,6 @@ public record ClocktowerRole(
         Codec.STRING.optionalFieldOf("other_night_reminder", "").forGetter(ClocktowerRole::otherNightReminder)
     ).apply(instance, ClocktowerRole::new));
     
-    // public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerRole> STREAM_CODEC = StreamCodec.composite(
-    //     ByteBufCodecs.STRING_UTF8, ClocktowerRole::name,
-    //     RoleType.STREAM_CODEC, ClocktowerRole::type,
-    //     Alignment.STREAM_CODEC, ClocktowerRole::alignment,
-    //     ByteBufCodecs.STRING_UTF8, ClocktowerRole::iconUrl,
-    //     ByteBufCodecs.STRING_UTF8, ClocktowerRole::abilityText,
-    //     ByteBufCodecs.STRING_UTF8, ClocktowerRole::edition,
-    //     ByteBufCodecs.STRING_UTF8, ClocktowerRole::firstNightReminder,
-    //     ByteBufCodecs.STRING_UTF8, ClocktowerRole::otherNightReminder,
-    //     ClocktowerRole::new
-    // );
-
     // uses StreamCodec.of instead of composite as composite has 6 a argument limit 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerRole> STREAM_CODEC = StreamCodec.of(
     (buf, role) -> {

@@ -1,70 +1,93 @@
 package online.refract.client.gui.grimiore;
 
+import java.util.Collection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
 import online.refract.client.gui.components.Modal;
+import online.refract.client.gui.grimiore.PlayerSelectionWidget.PlayerEntry;
+import online.refract.game.state.ClocktowerPlayer;
 
 public class LinkPlayerModal extends Modal {
 
-    private PlayerSelectionWidget playerList;
+    private PlayerSelectionWidget playerListWidget;
+    private ClocktowerPlayer linkingPlayer;
 
     public LinkPlayerModal(ClientActionHandler actionHandler) {
-        super(actionHandler, "Link Player", 200);
+        super(actionHandler, "Link Player", 250);
     }
+
+
 
     @Override
     public void init(int screenWidth, int screenHeight, Font font) {
         super.init(screenWidth, screenHeight, font);
 
-        this.playerList = new PlayerSelectionWidget(Minecraft.getInstance());
-
-        this.playerList.addPlayer("Sam");
-        this.playerList.addPlayer("Max");
-        this.playerList.addPlayer("Ellie");
-        this.playerList.addPlayer("Sarah");
-        this.playerList.addPlayer("Lily");
-        this.playerList.addPlayer("Kym");
-        this.playerList.addPlayer("Bob");
-        this.playerList.addPlayer("Alice");
-        this.playerList.addPlayer("Charlie");
-        this.playerList.addPlayer("Sam");
-        this.playerList.addPlayer("Max");
-        this.playerList.addPlayer("Ellie");
-        this.playerList.addPlayer("Sarah");
-        this.playerList.addPlayer("Lily");
-        this.playerList.addPlayer("Kym");
-        this.playerList.addPlayer("Bob");
-        this.playerList.addPlayer("Alice");
-        this.playerList.addPlayer("Charlie");
-        this.playerList.addPlayer("None");
-
-        addCustomRow(100, this.playerList);
-
-
+        this.playerListWidget = new PlayerSelectionWidget();
         
+
+
+        addCustomRow(100, this.playerListWidget);
 
 
         addButtonRow(
             createButton(
                 Component.literal("Link"), () -> {
-                    if (playerList.getSelected() != null) {
-                        this.actionHandler.debug("Linked: " + playerList.getSelected().getName());
+                    if (linkingPlayer != null) {
+                        PlayerEntry selectedPlayer = playerListWidget.getSelectedPlayer();
+                        if (selectedPlayer == null) {
+                            this.actionHandler.debug("No player selected");
+                            return;
+                        }
+                        this.actionHandler.sendLinkUsername(linkingPlayer, title);
+                        this.actionHandler.debug("Linking player: " + linkingPlayer.name + " with username: " + selectedPlayer.getName());
                     }
                     closeModal();
                 }
             ),
             createButton(
-                Component.literal("unlink"), () -> {
-                    if (playerList.getSelected() != null) {
-                        this.actionHandler.debug("Unlinked: " + playerList.getSelected().getName());
-                    }
+                Component.literal("Cancel"), () -> {
                     closeModal();
                 }
             )
         );
     }
 
-    
+
+
+
+    @Override    
+    public void openModal() {
+        throw new RuntimeException("Use openModal(ClocktowerPlayer player) instead");
+    }
+
+
+
+    public void openModal(ClocktowerPlayer player) {
+        this.linkingPlayer = player;
+        this.playerListWidget.clearPlayers();
+
+        Minecraft mc = Minecraft.getInstance();
+
+        if (mc.getConnection() == null) {
+            this.actionHandler.debug("No connection - cannot fetch player list");
+            return;
+        }
+
+        Collection<PlayerInfo> players = mc.getConnection().getOnlinePlayers();
+
+        for (PlayerInfo info : players) {
+            this.playerListWidget.addPlayer(info.getProfile().getName());
+        }
+
+
+
+        super.openModal();
+    }
+        
 }
+
+

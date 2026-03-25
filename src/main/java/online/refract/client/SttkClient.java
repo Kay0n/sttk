@@ -4,13 +4,14 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import online.refract.client.gui.grimiore.GrimoireScreen;
+import online.refract.network.S2CPackets;
 
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 
 public class SttkClient implements ClientModInitializer {
@@ -37,9 +38,16 @@ public class SttkClient implements ClientModInitializer {
                 if (client.screen instanceof GrimoireScreen) {
                     client.setScreen(null);
                 } else {
-                    client.setScreen(new GrimoireScreen());
+                    GrimoireScreen grimoireScreen = new GrimoireScreen();
+                    client.setScreen(grimoireScreen);
+                    ClocktowerClientState.setGrimoireScreen(grimoireScreen);
                 }
             }
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(
+            S2CPackets.SyncStateS2CPayload.ID,
+            (payload, context) -> { ClocktowerClientState.onStateSync(payload); }
+        );
     }
 }

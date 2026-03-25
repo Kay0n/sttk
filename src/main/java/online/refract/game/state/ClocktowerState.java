@@ -90,4 +90,13 @@ public class ClocktowerState {
             TownConnectionStatus.STREAM_CODEC.decode(buf)
         )
     );
+
+
+
+    public List<ClocktowerPlayer> getPlayers() {
+        return new ArrayList<>(players);
+    }
+    public List<ClocktowerRole> getRoles() {
+        return new ArrayList<>(roles);
+    }
 }
