@@ -1,9 +1,7 @@
 package online.refract.game.state;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.function.UnaryOperator;
-import java.util.ArrayList;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -56,10 +54,10 @@ public record ClocktowerState(
     }
 
     // update single player
-    public ClocktowerState withUpdatedPlayer(UUID clocktowerPlayerUUID, UnaryOperator<ClocktowerPlayer> updater) {
+    public ClocktowerState withUpdatedPlayer(String playerName, UnaryOperator<ClocktowerPlayer> updater) {
         return new ClocktowerState(
             players.stream()
-                   .map(p -> p.uuid().equals(clocktowerPlayerUUID) ? updater.apply(p) : p)
+                   .map(p -> p.name().equals(playerName) ? updater.apply(p) : p)
                    .toList(),
             roles,
             currentDay,

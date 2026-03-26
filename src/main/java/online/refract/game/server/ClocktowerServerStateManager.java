@@ -1,8 +1,5 @@
 package online.refract.game.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import net.minecraft.server.level.ServerPlayer;
 import online.refract.Sttk;
 import online.refract.game.state.ClocktowerPlayer;
@@ -20,10 +17,6 @@ public class ClocktowerServerStateManager {
     private static ClocktowerState currentState = ClocktowerState.EMPTY;
     private static TownConnectionStatus connectionStatus = TownConnectionStatus.DISCONNECTED;
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-
-
 
 
     public static void setVotingActive(boolean active) {
@@ -32,17 +25,20 @@ public class ClocktowerServerStateManager {
         LOGGER.debug("Vote state updated to: {}", active);
     }
 
-    public static void linkUsername(ClocktowerPlayer playerId, String minecraftUsername) {
+    // TODO: remove link from other players
+    public static void linkUsername(ClocktowerPlayer linkedPlayer, String minecraftUsername) {
         for (ClocktowerPlayer player : currentState.players()) {
-            if (player.uuid().toString().equals(playerId)) {
-                currentState = currentState.withUpdatedPlayer(player.uuid(), p ->
-                    p.withLinkedMinecraftUsername(minecraftUsername)
-                );
-                syncToAllPlayers();
-                LOGGER.debug("Linked username for player {}: {}", playerId, minecraftUsername);
-                return;
+            if (!player.name().equals(linkedPlayer.name())) {
+                continue;
             }
+            currentState = currentState.withUpdatedPlayer(linkedPlayer.name(), p ->
+                p.withLinkedMinecraftUsername(minecraftUsername)
+            );
+            syncToAllPlayers();
+            LOGGER.debug("Linked username for player {}: {}", linkedPlayer.name(), minecraftUsername);
+            return;
         }
+
     }
 
     // Called when player joins
