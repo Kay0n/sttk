@@ -11,11 +11,15 @@ import online.refract.game.state.Enums.TownConnectionStatus;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.jetbrains.annotations.Nullable;
 
 public class ClocktowerStateConverter {
 
-    public static ClocktowerState fromJsonPayload(String jsonPayload, String townName) throws IOException {
+    public static ClocktowerState updateClocktowerState(ClocktowerState currentState, String jsonPayload, String townName) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(jsonPayload);
         
@@ -25,16 +29,24 @@ public class ClocktowerStateConverter {
         JsonNode scriptNameNode = rootNode.get("scriptName");
         
         List<ClocktowerPlayer> players = new ArrayList<>();
+        List<ClocktowerRole> scriptRoles = new ArrayList<>();
+
         if (playersNode != null && playersNode.isArray()) {
+            Map<String, ClocktowerPlayer> existingPlayersByName = new HashMap<>();
+            for (ClocktowerPlayer existingPlayer : currentState.players()) {
+                existingPlayersByName.put(existingPlayer.name(), existingPlayer);
+            }
+
             for (JsonNode playerNode : playersNode) {
-                players.add(toClocktowerPlayer(playerNode));
+                String playerName = playerNode.get("name").asText();
+                ClocktowerPlayer existingPlayer = existingPlayersByName.get(playerName); // can be null, representing "new" player
+                players.add(updateClocktowerPlayer(existingPlayer, playerNode));
             }
         }
         
-        List<ClocktowerRole> scriptRoles = new ArrayList<>();
         if (rolesNode != null && rolesNode.isArray()) {
             for (JsonNode roleNode : rolesNode) {
-                scriptRoles.add(toClocktowerRole(roleNode));
+                scriptRoles.add(getClocktowerRole(roleNode));
             }
         }
         
@@ -50,14 +62,14 @@ public class ClocktowerStateConverter {
             currentPhase,
             townName,
             scriptEdition,
-            false, 
-            TownConnectionStatus.CONNECTED // townConnectionStatus - default to CONNECTED
+            currentState.isVoteActive(), 
+            TownConnectionStatus.CONNECTED // townConnectionStatus - default to CONNECTED        TODO: Check if correct
         );
     }
 
 
 
-    private static ClocktowerPlayer toClocktowerPlayer(JsonNode playerNode) {
+    private static ClocktowerPlayer updateClocktowerPlayer(@Nullable ClocktowerPlayer player , JsonNode playerNode) {
         String name = playerNode.get("name").asText();
         JsonNode roleNode = playerNode.get("roles").get(0);
         String roleName = roleNode.get("name").asText();
@@ -65,20 +77,20 @@ public class ClocktowerStateConverter {
         boolean isNominated = roleNode.get("onTheBlock").asBoolean();
         boolean isDead = !playerNode.get("alive").asBoolean();
         boolean hasUsedGhostVote = playerNode.has("ghostvote") ? playerNode.get("ghostvote").asBoolean() : false;
+        String linkedMinecraftUsername = player != null ? player.linkedMinecraftUsername() : "";
 
         return new ClocktowerPlayer(
-            null, // uuid - will be generated
             name,
             roleName,
             isGood ? Alignment.GOOD : Alignment.EVIL, 
-            null, 
-            isDead, // isDead in ClocktowerPlayer
+            linkedMinecraftUsername,
+            isDead, 
             hasUsedGhostVote,
-            isNominated  // isNominated - role level
+            isNominated  
         );
     }
 
-    private static ClocktowerRole toClocktowerRole(JsonNode roleNode) {
+    private static ClocktowerRole getClocktowerRole(JsonNode roleNode) {
         String name = roleNode.get("name").asText();
         String typeStr = roleNode.get("type").asText();
         RoleType type = RoleType.from(typeStr);
@@ -100,4 +112,6 @@ public class ClocktowerStateConverter {
             otherNightReminder
         );
     }
+
+
 }

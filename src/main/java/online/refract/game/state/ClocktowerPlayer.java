@@ -3,19 +3,15 @@ package online.refract.game.state;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import online.refract.game.state.Enums.Alignment;
 
-import java.util.UUID;
-
 import static online.refract.game.state.Enums.Alignment;
 
 
 public record ClocktowerPlayer(
-    UUID uuid,
     String name,
     String roleName,
     Alignment alignment,
@@ -26,7 +22,6 @@ public record ClocktowerPlayer(
 ) {
     public ClocktowerPlayer(String name) {
         this(
-            UUID.randomUUID(),
             name,
             null,
             Alignment.UNKNOWN,
@@ -39,7 +34,6 @@ public record ClocktowerPlayer(
 
     public ClocktowerPlayer withLinkedMinecraftUsername(String username) {
         return new ClocktowerPlayer(
-            uuid,
             name,
             roleName,
             alignment,
@@ -56,7 +50,6 @@ public record ClocktowerPlayer(
 
     public static final Codec<ClocktowerPlayer> CODEC =
         RecordCodecBuilder.create(instance -> instance.group(
-            UUIDUtil.CODEC.fieldOf("uuid").forGetter(p -> p.uuid),
             Codec.STRING.fieldOf("name").forGetter(p -> p.name),
             Codec.STRING.optionalFieldOf("role_name", null).forGetter(p -> p.roleName),
             Alignment.CODEC.optionalFieldOf("alignment", Alignment.UNKNOWN).forGetter(p -> p.alignment),
@@ -69,7 +62,6 @@ public record ClocktowerPlayer(
 
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerPlayer> STREAM_CODEC = StreamCodec.composite(
-            UUIDUtil.STREAM_CODEC, p -> p.uuid,
             ByteBufCodecs.STRING_UTF8, p -> p.name,
             ByteBufCodecs.STRING_UTF8, p -> p.roleName,
             Alignment.STREAM_CODEC, p -> p.alignment,
