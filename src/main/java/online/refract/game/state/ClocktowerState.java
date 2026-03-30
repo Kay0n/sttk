@@ -33,8 +33,8 @@ public record ClocktowerState(
         List.of(),
         0,
         GamePhase.DAY,
-        "Unknown",
-        "Unknown",
+        "",
+        "",
         false,
         TownConnectionStatus.DISCONNECTED
     );

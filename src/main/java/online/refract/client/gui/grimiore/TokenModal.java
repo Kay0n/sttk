@@ -36,10 +36,6 @@ public class TokenModal extends Modal{
             closeModal();
         });
 
-        addButton(Component.literal("Start Vote"), () -> {
-            closeModal();
-        });
-
         addSpacerRow();
 
         addButton(Component.literal("Link Player"), () -> {

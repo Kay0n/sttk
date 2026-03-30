@@ -49,7 +49,7 @@ public class LinkPlayerModal extends Modal {
                 }
             ),
             createButton(
-                Component.literal("Cancel"), () -> {
+                Component.literal("Close"), () -> {
                     closeModal();
                 }
             )

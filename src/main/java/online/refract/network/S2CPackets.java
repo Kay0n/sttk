@@ -1,5 +1,6 @@
 package online.refract.network;
 
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -10,17 +11,22 @@ import online.refract.game.state.ClocktowerState;
 public class S2CPackets {
 
 
-    public record SyncStateS2CPayload(ClocktowerState state) implements CustomPacketPayload {
+    public record SyncStatePayload(ClocktowerState state) implements CustomPacketPayload {
         public static final ResourceLocation SYNC_STATE_PAYLOAD_ID = ResourceLocation.fromNamespaceAndPath(Sttk.MOD_ID, "sync_state");
-        public static final CustomPacketPayload.Type<SyncStateS2CPayload> ID = new CustomPacketPayload.Type<>(SYNC_STATE_PAYLOAD_ID);
-        public static final StreamCodec<RegistryFriendlyByteBuf, SyncStateS2CPayload> CODEC = StreamCodec.composite(
+        public static final CustomPacketPayload.Type<SyncStatePayload> ID = new CustomPacketPayload.Type<>(SYNC_STATE_PAYLOAD_ID);
+        public static final StreamCodec<RegistryFriendlyByteBuf, SyncStatePayload> CODEC = StreamCodec.composite(
             ClocktowerState.STREAM_CODEC,
-            SyncStateS2CPayload::state, 
-            SyncStateS2CPayload::new
+            SyncStatePayload::state, 
+            SyncStatePayload::new
         );
 
         @Override
         public Type<? extends CustomPacketPayload> type() { return ID; }
+    }
+
+
+    public static void registerPackets() {
+        PayloadTypeRegistry.playS2C().register(SyncStatePayload.ID, SyncStatePayload.CODEC);
     }
 
     

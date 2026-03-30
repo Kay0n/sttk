@@ -3,7 +3,6 @@ package online.refract.client;
 import online.refract.client.gui.grimiore.GrimoireScreen;
 import online.refract.game.state.ClocktowerState;
 import online.refract.game.state.Enums.TownConnectionStatus;
-import online.refract.network.S2CPackets;
 
 public class ClocktowerClientState {
     
@@ -15,8 +14,7 @@ public class ClocktowerClientState {
         grimoireScreen = screen;
     }
     
-    public static void onStateSync(S2CPackets.SyncStateS2CPayload payload) {
-        ClocktowerState newState = payload.state();
+    public static void onRecieveState(ClocktowerState newState) {
         state = newState;
         
         TownConnectionStatus newStatus = newState.townConnectionStatus();
@@ -25,6 +23,8 @@ public class ClocktowerClientState {
             previousConnectionStatus = newStatus;
             grimoireScreen.onStateUpdated();
         }
+        
+ 
     }
     
     public static ClocktowerState getState() {

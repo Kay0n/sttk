@@ -35,6 +35,9 @@ public class GrimoireScreen extends Screen {
 
 
     public void onStateUpdated() {
+        if (townModal.isOpen()) {
+            townModal.updateComponents();
+        }
         rebuildButtons();
     }
 
@@ -44,24 +47,19 @@ public class GrimoireScreen extends Screen {
         globalButtons.clear();
         ClocktowerState state = ClocktowerClientState.getState();
         TownConnectionStatus status = state.townConnectionStatus();
-        
-        if (status == TownConnectionStatus.INVALID_TOWN) {
-            globalButtons.add(makeButton("Reconnect to Town", width - 105, height - 42, () -> townModal.openModal()));
+
+        globalButtons.add(makeButton("🏘 Town", width - 74, height - 24, () -> townModal.openModal()));
+
+        if (status == TownConnectionStatus.CONNECTED) {
+
+            // TODO: confirmation modal, add "text" widget to Modal class
+            globalButtons.add(makeButton("Send Roles", width - 74, height - 24 - (22 * 1), () -> {}));
+
+            // TODO: send packet
+            globalButtons.add(makeButton("Start Vote", width - 74, 2, () -> {}));
+
         } 
-        else if (status == TownConnectionStatus.CONNECTION_LOST) {
-            globalButtons.add(makeButton("Reconnect to Town", width - 105, height - 42, () -> townModal.openModal()));
-        } 
-        else if (status == TownConnectionStatus.DISCONNECTED) {
-            globalButtons.add(makeButton("Connect to Town", width - 74, height - 42, () -> townModal.openModal()));
-        } 
-        else if (status == TownConnectionStatus.CONNECTED) {
-            globalButtons.add(makeButton("Distribute Roles", width - 74, height - 42, () -> tokenModal.openModal()));
-            globalButtons.add(makeButton("🏘 Town",          width - 74, height - 22, () -> townModal.openModal()));
-            globalButtons.add(makeButton("Change Town",     width - 74, height - 2, () -> townModal.openModal()));
-        } 
-        else {
-            globalButtons.add(makeButton("Connect to Town", width - 74, height - 42, () -> townModal.openModal()));
-        }
+
         globalButtons.forEach(this::addRenderableWidget);
     }
 

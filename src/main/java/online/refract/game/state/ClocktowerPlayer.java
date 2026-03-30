@@ -8,7 +8,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import online.refract.game.state.Enums.Alignment;
 
-import static online.refract.game.state.Enums.Alignment;
 
 
 public record ClocktowerPlayer(
@@ -23,9 +22,9 @@ public record ClocktowerPlayer(
     public ClocktowerPlayer(String name) {
         this(
             name,
-            null,
-            Alignment.UNKNOWN,
-            null,
+            "",
+            Alignment.GOOD,
+            "",
             false,
             false,
             false
@@ -51,9 +50,9 @@ public record ClocktowerPlayer(
     public static final Codec<ClocktowerPlayer> CODEC =
         RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(p -> p.name),
-            Codec.STRING.optionalFieldOf("role_name", null).forGetter(p -> p.roleName),
-            Alignment.CODEC.optionalFieldOf("alignment", Alignment.UNKNOWN).forGetter(p -> p.alignment),
-            Codec.STRING.optionalFieldOf("linked_minecraft_username", null).forGetter(p -> p.linkedMinecraftUsername),
+            Codec.STRING.optionalFieldOf("role_name", "").forGetter(p -> p.roleName),
+            Alignment.CODEC.optionalFieldOf("alignment", Alignment.GOOD).forGetter(p -> p.alignment),
+            Codec.STRING.optionalFieldOf("linked_minecraft_username", "").forGetter(p -> p.linkedMinecraftUsername),
 
             Codec.BOOL.optionalFieldOf("is_dead", false).forGetter(p -> p.isDead),
             Codec.BOOL.optionalFieldOf("has_used_ghost_vote", false).forGetter(p -> p.hasUsedGhostVote),

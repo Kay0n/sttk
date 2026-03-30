@@ -22,7 +22,7 @@ public record ClocktowerRole(
     public static final Codec<ClocktowerRole> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.STRING.fieldOf("name").forGetter(ClocktowerRole::name),
         RoleType.CODEC.optionalFieldOf("type", RoleType.TOWNSFOLK).forGetter(ClocktowerRole::type),
-        Alignment.CODEC.optionalFieldOf("alignment", Alignment.UNKNOWN).forGetter(ClocktowerRole::alignment),
+        Alignment.CODEC.optionalFieldOf("alignment", Alignment.GOOD).forGetter(ClocktowerRole::alignment),
         Codec.STRING.fieldOf("icon").forGetter(ClocktowerRole::iconUrl),
         Codec.STRING.fieldOf("ability").forGetter(ClocktowerRole::abilityText),
         Codec.STRING.optionalFieldOf("edition", "").forGetter(ClocktowerRole::edition),

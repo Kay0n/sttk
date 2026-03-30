@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import online.refract.client.gui.grimiore.GrimoireScreen;
+import online.refract.network.C2SPackets;
 import online.refract.network.S2CPackets;
 
 import org.lwjgl.glfw.GLFW;
@@ -37,7 +38,8 @@ public class SttkClient implements ClientModInitializer {
 
                 if (client.screen instanceof GrimoireScreen) {
                     client.setScreen(null);
-                } else {
+                } 
+                else {
                     GrimoireScreen grimoireScreen = new GrimoireScreen();
                     client.setScreen(grimoireScreen);
                     ClocktowerClientState.setGrimoireScreen(grimoireScreen);
@@ -45,9 +47,9 @@ public class SttkClient implements ClientModInitializer {
             }
         });
 
-        // ServerPlayNetworking.registerGlobalReceiver(
-        //     S2CPackets.SyncStateS2CPayload.ID,
-        //     (payload, context) -> { ClocktowerClientState.onStateSync(payload); }
-        // );
+
+        ClientPacketReceiver.register();
+        
+
     }
 }

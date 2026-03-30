@@ -35,8 +35,8 @@ public abstract class Modal {
     protected Font font;
     
     private final List<RowData> rows = new ArrayList<>();
-    private final List<AbstractWidget> activeWidgets = new ArrayList<>();
-    private AbstractWidget focusedWidget = null;
+    private final List<AbstractWidget> modalWidgets = new ArrayList<>();
+    protected AbstractWidget focusedWidget = null;
 
     protected record RowData(List<AbstractWidget> widgets, int height) {}
 
@@ -59,7 +59,7 @@ public abstract class Modal {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.open = false;
-        this.activeWidgets.clear();
+        this.modalWidgets.clear();
         this.rows.clear();
         this.font = font;
     }
@@ -71,8 +71,9 @@ public abstract class Modal {
 
     public void closeModal() {
         this.open = false;
-        this.activeWidgets.clear();
-        this.focusedWidget = null;
+        this.clearFocus();
+        this.modalWidgets.clear();
+
     }
 
     public boolean isOpen() { return this.open; }
@@ -84,20 +85,16 @@ public abstract class Modal {
         return Button.builder(text, btn -> action.run()).build();
     }
 
+    protected EditBox createEditBox(String placeholder, int maxLength, String value) {
+        EditBox editBox = createEditBox(placeholder, maxLength);
+        editBox.setValue(value);
+        return editBox;
+    }
 
     protected EditBox createEditBox(String placeholder, int maxLength) {
-        return createEditBox(placeholder, maxLength, false);
-    }
-    protected EditBox createEditBox(String placeholder, int maxLength, boolean isPassword) {
         EditBox editBox = new EditBox(Minecraft.getInstance().font, 0, 0, 0, ELEMENT_HEIGHT, Component.literal(placeholder));
         editBox.setMaxLength(maxLength);
         editBox.setHint(Component.literal(placeholder));
-        if (isPassword) {
-            editBox.setFormatter((text, cursorPos) -> {
-                String masked = "*".repeat(text.length());
-                return FormattedCharSequence.forward(masked, Style.EMPTY);
-            });
-        }
         return editBox;
     }
 
@@ -128,6 +125,12 @@ public abstract class Modal {
         this.rows.add(new RowData(List.of(widget), height));
     }
 
+    protected void clearWidgets() {
+        this.rows.clear();
+        this.modalWidgets.clear();
+        this.focusedWidget = null;
+    }
+
 
 
 
@@ -144,8 +147,8 @@ public abstract class Modal {
         return total;
     }
 
-    private void rebuildLayout() {
-        this.activeWidgets.clear();
+    protected void rebuildLayout() {
+        this.modalWidgets.clear();
         
         this.height = measureHeight();
         this.x = (screenWidth - this.width) / 2;
@@ -170,10 +173,14 @@ public abstract class Modal {
                 widget.setY(currentY);
                 widget.setWidth(itemWidth);
                 widget.setHeight(row.height());
-                this.activeWidgets.add(widget);
+                this.modalWidgets.add(widget);
                 currentX += itemWidth + this.gap;
             }
             currentY += row.height() + this.gap;
+        }
+
+        if (this.focusedWidget != null && modalWidgets.contains(this.focusedWidget)) {
+            setFocus(this.focusedWidget);
         }
     }
 
@@ -186,7 +193,7 @@ public abstract class Modal {
         context.renderOutline(this.x, this.y, this.width, this.height, MODAL_BORDER);
         context.drawCenteredString(this.font, this.title, this.x + (this.width / 2), this.y + this.margin, 0xFFFFFFFF);
 
-        for (AbstractWidget widget : activeWidgets) {
+        for (AbstractWidget widget : modalWidgets) {
             widget.render(context, mouseX, mouseY, delta);
         }
     }
@@ -198,20 +205,30 @@ public abstract class Modal {
     }
 
 
-    private void setFocus(AbstractWidget focusedWidget) {
+    protected void setFocus(AbstractWidget focusedWidget) {
         this.focusedWidget = focusedWidget;
-        for (AbstractWidget w : activeWidgets) {
+        for (AbstractWidget w : modalWidgets) {
             w.setFocused(w == focusedWidget);
+        }
+        if (this.focusedWidget instanceof EditBox) {
+            ((EditBox) this.focusedWidget).moveCursorToEnd(false);
+        }
+    }
+
+    protected void clearFocus() {
+         this.focusedWidget = null;
+        for (AbstractWidget w : modalWidgets) {
+            w.setFocused(false);
         }
     }
 
 
     private void cycleFocus(boolean reverse) {
-        if (activeWidgets.isEmpty()) return;
+        if (modalWidgets.isEmpty()) return;
 
-        int currentIndex = activeWidgets.indexOf(this.focusedWidget);
+        int currentIndex = modalWidgets.indexOf(this.focusedWidget);
 
-        int size = activeWidgets.size();
+        int size = modalWidgets.size();
         int nextIndex = currentIndex;
 
         for (int i = 0; i < size; i++) {
@@ -223,7 +240,7 @@ public abstract class Modal {
                 if (nextIndex >= size) nextIndex = 0;
             }
 
-            AbstractWidget widget = activeWidgets.get(nextIndex);
+            AbstractWidget widget = modalWidgets.get(nextIndex);
             
             if (widget.active && widget.visible) {
                 setFocus(widget);
@@ -248,8 +265,8 @@ public abstract class Modal {
         boolean clickedWidget = false;
         
         // loop backwards to prioritize topmost widgets in case of overlap
-        for (int i = activeWidgets.size() - 1; i >= 0; i--) {
-            AbstractWidget widget = activeWidgets.get(i);
+        for (int i = modalWidgets.size() - 1; i >= 0; i--) {
+            AbstractWidget widget = modalWidgets.get(i);
             if (widget.mouseClicked(mx, my, button)) {
                 clickedWidget = true;
                 setFocus(widget);
@@ -264,7 +281,7 @@ public abstract class Modal {
 
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (!open) return false;
-        for (AbstractWidget widget : activeWidgets) {
+        for (AbstractWidget widget : modalWidgets) {
             if (widget.mouseReleased(mouseX, mouseY, button)) return true;
         }
         return false;
@@ -273,7 +290,7 @@ public abstract class Modal {
 
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (!open) return false;
-        for (AbstractWidget widget : activeWidgets) {
+        for (AbstractWidget widget : modalWidgets) {
             if (widget.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) return true;
         }
         return false;
@@ -282,7 +299,7 @@ public abstract class Modal {
 
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (!open) return false;
-        for (AbstractWidget widget : activeWidgets) {
+        for (AbstractWidget widget : modalWidgets) {
             if (widget.mouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
         }
         return false;
@@ -303,7 +320,7 @@ public abstract class Modal {
             cycleFocus(shiftPressed); 
             return true;
         }
-        for (AbstractWidget widget : activeWidgets) {
+        for (AbstractWidget widget : modalWidgets) {
             if (widget.isFocused() && widget.keyPressed(keyCode, scanCode, modifiers)) {
                 return true;
             }
@@ -314,7 +331,7 @@ public abstract class Modal {
 
     public boolean charTyped(char chr, int modifiers) {
         if (!open) return false;
-        for (AbstractWidget widget : activeWidgets) {
+        for (AbstractWidget widget : modalWidgets) {
             if (widget.charTyped(chr, modifiers)) return true;
         }
         return false;
