@@ -6,27 +6,63 @@ import online.refract.network.C2SPackets;
 
 public class ServerPacketReceiver {
     
-    public static void register(TownConnectionHandler townConnectionHandler, ClocktowerServerStateManager stateManager) {
-        // Toggle Vote
+    public static void register(TownConnectionHandler townConnectionHandler, ClocktowerServerStateManager stateManager, ScoreboardManager scoreboardManager) {
+
         ServerPlayNetworking.registerGlobalReceiver(
-            C2SPackets.ToggleVotePayload.ID,
+            C2SPackets.StartVoteForPlayerPayload.ID,
             (payload, context) -> {
-                stateManager.updateVoteActive(payload.active());
+                stateManager.updateState(stateManager.getState().withVoteActive(true));
+                scoreboardManager.startVoteForPlayer(payload.player(), stateManager.getState());
+            }
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+            C2SPackets.StopVotePayload.ID,
+            (payload, context) -> {
+                stateManager.updateState(stateManager.getState().withVoteActive(false));
+                scoreboardManager.stopVote();
+            }
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+            C2SPackets.DistributeRolesToTownPayload.ID,
+            (payload, context) -> {
+                // TODO: animations on the client 
+            }
+        );
+
+
+        ServerPlayNetworking.registerGlobalReceiver(
+            C2SPackets.RequestPrivateChatPayload.ID,
+            (payload, context) -> {
+                scoreboardManager.requestPrivateChat(payload.player());
+            }
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+            C2SPackets.RequestTeleportToPlayerPayload.ID,
+            (payload, context) -> {
+                scoreboardManager.requestTeleportToPlayer(payload.player());
+            }
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+            C2SPackets.RequestTeleportToHousePayload.ID,
+            (payload, context) -> {
+                scoreboardManager.requestTeleportToHouse(payload.player());
             }
         );
         
-        // Link Username
         ServerPlayNetworking.registerGlobalReceiver(
             C2SPackets.LinkUsernamePayload.ID,
             (payload, context) -> {
-                    stateManager.handlePacketUpdate(
+                    stateManager.updatePlayerLink(
                         payload.playerToLink().name(),
                         payload.minecraftUsername()
                     );
             }
         );
         
-        // Connect to Town
         ServerPlayNetworking.registerGlobalReceiver(
             C2SPackets.ConnectToTownPayload.ID,
             (payload, context) -> {
@@ -34,8 +70,6 @@ public class ServerPacketReceiver {
             }
         );
 
-
-        // Disconnect from Town
         ServerPlayNetworking.registerGlobalReceiver(
             C2SPackets.DisconnectFromTownPayload.ID,
             (payload, context) -> {

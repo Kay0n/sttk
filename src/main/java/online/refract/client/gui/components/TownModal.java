@@ -1,4 +1,4 @@
-package online.refract.client.gui.grimiore;
+package online.refract.client.gui.components;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
@@ -8,7 +8,6 @@ import online.refract.client.ClientActionHandler;
 import online.refract.client.ClocktowerClientState;
 import online.refract.game.state.ClocktowerState;
 import online.refract.game.state.Enums.TownConnectionStatus;
-import online.refract.client.gui.components.Modal;
 
 public class TownModal extends Modal {
 

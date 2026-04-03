@@ -1,4 +1,4 @@
-package online.refract.client.gui.grimiore;
+package online.refract.client.gui.screens.grimiore;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,19 +1,16 @@
-package online.refract.client.gui.grimiore;
+package online.refract.client.gui.components;
 
 import java.util.Collection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 import online.refract.client.ClientActionHandler;
-import online.refract.client.gui.components.Modal;
-import online.refract.client.gui.grimiore.PlayerSelectionWidget.PlayerEntry;
 import online.refract.game.state.ClocktowerPlayer;
 
 public class LinkPlayerModal extends Modal {
 
-    private PlayerSelectionWidget playerListWidget;
+    private SelectionWidget<String> playerListWidget;
     private ClocktowerPlayer linkingPlayer;
 
     public LinkPlayerModal(ClientActionHandler actionHandler) {
@@ -26,7 +23,8 @@ public class LinkPlayerModal extends Modal {
     public void init(int screenWidth, int screenHeight, Font font) {
         super.init(screenWidth, screenHeight, font);
 
-        this.playerListWidget = new PlayerSelectionWidget();
+        this.playerListWidget = new SelectionWidget<>(name -> name);
+
         
 
 
@@ -37,13 +35,13 @@ public class LinkPlayerModal extends Modal {
             createButton(
                 Component.literal("Link"), () -> {
                     if (linkingPlayer != null) {
-                        PlayerEntry selectedPlayer = playerListWidget.getSelectedPlayer();
-                        if (selectedPlayer == null) {
+                        String selectedPlayerName = playerListWidget.getSelectedValue();
+                        if (selectedPlayerName == null) {
                             this.actionHandler.debug("No player selected");
                             return;
                         }
-                        this.actionHandler.sendLinkUsername(linkingPlayer, title);
-                        this.actionHandler.debug("Linking player: " + linkingPlayer.name() + " with username: " + selectedPlayer.getName());
+                        this.actionHandler.sendLinkUsername(linkingPlayer, selectedPlayerName);
+                        this.actionHandler.debug("Linking player: " + linkingPlayer.name() + " with username: " + selectedPlayerName);
                     }
                     closeModal();
                 }
@@ -68,7 +66,7 @@ public class LinkPlayerModal extends Modal {
 
     public void openModal(ClocktowerPlayer player) {
         this.linkingPlayer = player;
-        this.playerListWidget.clearPlayers();
+        this.playerListWidget.clearEntries();
 
         Minecraft mc = Minecraft.getInstance();
 
@@ -80,7 +78,7 @@ public class LinkPlayerModal extends Modal {
         Collection<PlayerInfo> players = mc.getConnection().getOnlinePlayers();
 
         for (PlayerInfo info : players) {
-            this.playerListWidget.addPlayer(info.getProfile().getName());
+            this.playerListWidget.addEntry(info.getProfile().getName());
         }
 
 

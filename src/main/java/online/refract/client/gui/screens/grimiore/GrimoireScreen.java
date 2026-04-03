@@ -1,9 +1,14 @@
-package online.refract.client.gui.grimiore;
+package online.refract.client.gui.screens.grimiore;
 
 import online.refract.client.ClientActionHandler;
 import online.refract.client.SttkClient;
 import online.refract.client.ClocktowerClientState;
+import online.refract.client.gui.components.LinkPlayerModal;
 import online.refract.client.gui.components.Modal;
+import online.refract.client.gui.components.PlayerModal;
+import online.refract.client.gui.components.ConfirmationModal;
+import online.refract.client.gui.components.TownModal;
+import online.refract.client.gui.components.VoteModal;
 import online.refract.game.state.ClocktowerPlayer;
 import online.refract.game.state.ClocktowerState;
 import online.refract.game.state.Enums.TownConnectionStatus;
@@ -23,8 +28,15 @@ public class GrimoireScreen extends Screen {
     private final List<Modal> modals = new ArrayList<>();
 
     private final LinkPlayerModal linkPlayerModal = registerModal(new LinkPlayerModal(actionHandler));
-    private final TokenModal tokenModal = registerModal(new TokenModal(actionHandler, linkPlayerModal));
+    private final PlayerModal playerModal = registerModal(new PlayerModal(actionHandler, linkPlayerModal));
     private final TownModal townModal = registerModal(new TownModal(actionHandler));
+    private final VoteModal voteModal = registerModal(new VoteModal(actionHandler));
+    private final ConfirmationModal confirmationModal = registerModal(new ConfirmationModal(
+        actionHandler, 
+        "Send roles to town", 
+        "Send", 
+        () -> {} // actionHandler.sendSendRolesToTown();
+    ));
 
 
 
@@ -52,12 +64,20 @@ public class GrimoireScreen extends Screen {
 
         if (status == TownConnectionStatus.CONNECTED) {
 
-            // TODO: confirmation modal, add "text" widget to Modal class
-            globalButtons.add(makeButton("Send Roles", width - 74, height - 24 - (22 * 1), () -> {}));
+            globalButtons.add(makeButton("Send Roles", width - 74, height - 24 - (22 * 1), () -> {
+                confirmationModal.openModal();
+            }));
 
-            // TODO: send packet
-            globalButtons.add(makeButton("Start Vote", width - 74, 2, () -> {}));
-
+            if (state.isVoteActive()) {
+                globalButtons.add(makeButton("Stop Vote", width - 74, 2, () -> {
+                    this.actionHandler.sendStopVote();
+                }));
+            } 
+            else {
+                globalButtons.add(makeButton("Start Vote", width - 74, 2, () -> {
+                    this.voteModal.openModal(state);
+                }));
+            }
         } 
 
         globalButtons.forEach(this::addRenderableWidget);
@@ -98,7 +118,7 @@ public class GrimoireScreen extends Screen {
         if (button == 0) {
             ClocktowerPlayer clickedPlayer = tokenRenderer.hitTest(ClocktowerClientState.getState().players(), mouseX, mouseY, width, height);
             if (clickedPlayer != null) {
-                tokenModal.openModal(clickedPlayer);
+                playerModal.openModal(clickedPlayer);
                 return true;
             }
         }

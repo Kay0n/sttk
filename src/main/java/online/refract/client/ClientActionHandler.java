@@ -8,8 +8,28 @@ import net.minecraft.client.Minecraft;
 public class ClientActionHandler {
 
     
-    public void sendToggleVote(boolean active) {
-        ClientPlayNetworking.send(new C2SPackets.ToggleVotePayload(active));
+    public void sendStartVoteForPlayer(ClocktowerPlayer player) {
+        ClientPlayNetworking.send(new C2SPackets.StartVoteForPlayerPayload(player));
+    }
+
+    public void sendStopVote() {
+        ClientPlayNetworking.send(new C2SPackets.StopVotePayload());
+    }
+
+    public void sendDistributeRolesToTown() {
+        ClientPlayNetworking.send(new C2SPackets.DistributeRolesToTownPayload());
+    }
+
+    public void sendRequestPrivateChat(ClocktowerPlayer player) {
+        ClientPlayNetworking.send(new C2SPackets.RequestPrivateChatPayload(player));
+    }
+
+    public void sendRequestTeleportToPlayer(ClocktowerPlayer player) {
+        ClientPlayNetworking.send(new C2SPackets.RequestTeleportToPlayerPayload(player));
+    }
+
+    public void sendRequestTeleportToHouse(ClocktowerPlayer player) {
+        ClientPlayNetworking.send(new C2SPackets.RequestTeleportToHousePayload(player));
     }
     
    public void sendLinkUsername(ClocktowerPlayer player, String minecraftUsername) {

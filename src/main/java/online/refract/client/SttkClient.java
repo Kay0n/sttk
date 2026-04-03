@@ -6,7 +6,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.KeyMapping;
-import online.refract.client.gui.grimiore.GrimoireScreen;
+import online.refract.client.gui.screens.grimiore.GrimoireScreen;
 import online.refract.network.C2SPackets;
 import online.refract.network.S2CPackets;
 

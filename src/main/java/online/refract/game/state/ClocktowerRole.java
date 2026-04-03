@@ -21,13 +21,13 @@ public record ClocktowerRole(
 ) {
     public static final Codec<ClocktowerRole> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.STRING.fieldOf("name").forGetter(ClocktowerRole::name),
-        RoleType.CODEC.optionalFieldOf("type", RoleType.TOWNSFOLK).forGetter(ClocktowerRole::type),
-        Alignment.CODEC.optionalFieldOf("alignment", Alignment.GOOD).forGetter(ClocktowerRole::alignment),
+        RoleType.CODEC.fieldOf("type").forGetter(ClocktowerRole::type),
+        Alignment.CODEC.fieldOf("alignment").forGetter(ClocktowerRole::alignment),
         Codec.STRING.fieldOf("icon").forGetter(ClocktowerRole::iconUrl),
         Codec.STRING.fieldOf("ability").forGetter(ClocktowerRole::abilityText),
-        Codec.STRING.optionalFieldOf("edition", "").forGetter(ClocktowerRole::edition),
-        Codec.STRING.optionalFieldOf("first_night_reminder", "").forGetter(ClocktowerRole::firstNightReminder),
-        Codec.STRING.optionalFieldOf("other_night_reminder", "").forGetter(ClocktowerRole::otherNightReminder)
+        Codec.STRING.fieldOf("edition").forGetter(ClocktowerRole::edition),
+        Codec.STRING.fieldOf("first_night_reminder").forGetter(ClocktowerRole::firstNightReminder),
+        Codec.STRING.fieldOf("other_night_reminder").forGetter(ClocktowerRole::otherNightReminder)
     ).apply(instance, ClocktowerRole::new));
     
     // uses StreamCodec.of instead of composite as composite has 6 a argument limit 

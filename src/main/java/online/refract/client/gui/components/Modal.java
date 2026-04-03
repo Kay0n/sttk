@@ -15,7 +15,6 @@ import net.minecraft.util.FormattedCharSequence;
 
 import org.lwjgl.glfw.GLFW;
 import online.refract.client.ClientActionHandler;
-import online.refract.client.gui.grimiore.PlayerSelectionWidget;
 
 public abstract class Modal {
 
@@ -120,7 +119,7 @@ public abstract class Modal {
         this.rows.add(new RowData(List.of(), 0));
     }
 
-    protected void addPlayerListRow(PlayerSelectionWidget widget, int height) {
+    protected <T> void addSelectionRow(SelectionWidget<T> widget, int height) {
         widget.setHeight(height); 
         this.rows.add(new RowData(List.of(widget), height));
     }

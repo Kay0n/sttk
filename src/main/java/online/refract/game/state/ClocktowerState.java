@@ -20,6 +20,7 @@ public record ClocktowerState(
     String townName,
     String scriptEdition,
     boolean isVoteActive,
+    // TODO: TimerState class
     TownConnectionStatus townConnectionStatus
 ) {
 
@@ -54,10 +55,10 @@ public record ClocktowerState(
     }
 
     // update single player
-    public ClocktowerState withUpdatedPlayer(String playerName, UnaryOperator<ClocktowerPlayer> updater) {
+    public ClocktowerState withUpdatedPlayer(String clocktowerPlayerName, UnaryOperator<ClocktowerPlayer> updater) {
         return new ClocktowerState(
             players.stream()
-                   .map(p -> p.name().equals(playerName) ? updater.apply(p) : p)
+                   .map(p -> p.name().equals(clocktowerPlayerName) ? updater.apply(p) : p)
                    .toList(),
             roles,
             currentDay,

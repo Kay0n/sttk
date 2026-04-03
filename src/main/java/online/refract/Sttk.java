@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.resources.ResourceLocation;
 import online.refract.game.server.ModCommands;
+import online.refract.game.server.ScoreboardManager;
 import online.refract.game.server.ServerPacketReceiver;
 import online.refract.http.TownConnectionHandler;
 import online.refract.game.server.ClocktowerServerStateManager;
@@ -23,6 +24,8 @@ public class Sttk implements ModInitializer {
 
     public ClocktowerServerStateManager stateManager;
     public TownConnectionHandler townConnectionHandler;
+    public ScoreboardManager scoreboardManager;
+
 
 
     public static ResourceLocation id(String path) {
@@ -37,9 +40,10 @@ public class Sttk implements ModInitializer {
     public void onInitialize() {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            stateManager = new ClocktowerServerStateManager(server);
+            scoreboardManager = new ScoreboardManager(server);
+            stateManager = new ClocktowerServerStateManager(server, scoreboardManager);
             townConnectionHandler = new TownConnectionHandler(SSE_BASE_URL, stateManager);
-            ServerPacketReceiver.register(townConnectionHandler, stateManager);
+            ServerPacketReceiver.register(townConnectionHandler, stateManager, scoreboardManager);
         });
 
 
