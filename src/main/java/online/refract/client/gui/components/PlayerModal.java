@@ -2,7 +2,7 @@ package online.refract.client.gui.components;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
-import online.refract.client.ClientActionHandler;
+import online.refract.client.ClientCoordinator;
 import online.refract.game.state.ClocktowerPlayer;
 
 
@@ -13,7 +13,7 @@ public class PlayerModal extends Modal{
     private LinkPlayerModal linkPlayerModal;
 
 
-    public PlayerModal(ClientActionHandler actionHandler, LinkPlayerModal linkPlayerModal) {
+    public PlayerModal(ClientCoordinator actionHandler, LinkPlayerModal linkPlayerModal) {
         super(actionHandler, "", 140, 5, 6);
         this.linkPlayerModal = linkPlayerModal;
     }
@@ -24,17 +24,17 @@ public class PlayerModal extends Modal{
 
 
         addButton(Component.literal("Private Chat"), () -> {
-            this.actionHandler.sendRequestPrivateChat(player);
+            this.actionHandler.requestPrivateChat(player);
             closeModal();
         });
 
         addButton(Component.literal("Teleport to Player"), () -> {
-            this.actionHandler.sendRequestTeleportToPlayer(player);
+            this.actionHandler.requestTeleportToPlayer(player);
             closeModal();
         });
 
         addButton(Component.literal("Teleport to House"), () -> {
-            this.actionHandler.sendRequestTeleportToHouse(player);
+            this.actionHandler.requestTeleportToHouse(player);
             closeModal();
         });
 

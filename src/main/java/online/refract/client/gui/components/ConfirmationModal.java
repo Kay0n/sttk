@@ -2,7 +2,8 @@ package online.refract.client.gui.components;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
-import online.refract.client.ClientActionHandler;
+import online.refract.Sttk;
+import online.refract.client.ClientCoordinator;
 
 
 public class ConfirmationModal extends Modal{
@@ -11,7 +12,7 @@ public class ConfirmationModal extends Modal{
     private final Runnable onConfirm;
 
 
-    public ConfirmationModal(ClientActionHandler actionHandler, String title, String confirmButtonText, Runnable onConfirm) {
+    public ConfirmationModal(ClientCoordinator actionHandler, String title, String confirmButtonText, Runnable onConfirm) {
         super(actionHandler, title, 140, 5, 6);
         this.confirmButtonText = confirmButtonText;
         this.onConfirm = onConfirm;

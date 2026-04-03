@@ -1,22 +1,17 @@
 package online.refract.client.gui.components;
 
-import java.util.Collection;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.screens.social.PlayerEntry;
-import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
-import online.refract.client.ClientActionHandler;
+import online.refract.client.ClientCoordinator;
 import online.refract.game.state.ClocktowerPlayer;
 import online.refract.game.state.ClocktowerState;
 
 public class VoteModal extends Modal {
 
     private SelectionWidget<ClocktowerPlayer> playerListWidget;
-    private ClocktowerPlayer linkingPlayer;
 
-    public VoteModal(ClientActionHandler actionHandler) {
-        super(actionHandler, "Vote", 250);
+    public VoteModal(ClientCoordinator clientCoordinator) {
+        super(clientCoordinator, "Vote", 250);
     }
 
 
@@ -35,11 +30,9 @@ public class VoteModal extends Modal {
                 Component.literal("Start Vote"), () -> {
                     ClocktowerPlayer selectedPlayer = playerListWidget.getSelectedValue();
                     if (selectedPlayer == null) {
-                        this.actionHandler.debug("No player selected");
                         return;
                     }
-                    
-                    this.actionHandler.sendStartVoteForPlayer(selectedPlayer);
+                    this.actionHandler.startVoteForPlayer(selectedPlayer);
                     closeModal();
                 }
             ),

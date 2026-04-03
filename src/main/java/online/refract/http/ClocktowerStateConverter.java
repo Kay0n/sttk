@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ClocktowerStateConverter {
 
-    public static ClocktowerState updateClocktowerState(ClocktowerState currentState, String jsonPayload, String townName) throws IOException {
+    public static ClocktowerState parseJsonToState(ClocktowerState currentState, String jsonPayload, String townName) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(jsonPayload);
         

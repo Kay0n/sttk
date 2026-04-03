@@ -10,11 +10,9 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
 
 import org.lwjgl.glfw.GLFW;
-import online.refract.client.ClientActionHandler;
+import online.refract.client.ClientCoordinator;
 
 public abstract class Modal {
 
@@ -30,7 +28,7 @@ public abstract class Modal {
     protected int width, height, x, y, screenWidth, screenHeight;
     protected int margin, gap;
     protected String title;
-    protected final ClientActionHandler actionHandler;
+    protected final ClientCoordinator actionHandler;
     protected Font font;
     
     private final List<RowData> rows = new ArrayList<>();
@@ -40,7 +38,7 @@ public abstract class Modal {
     protected record RowData(List<AbstractWidget> widgets, int height) {}
 
 
-    public Modal(ClientActionHandler actionHandler, String title, int width, int margin, int gap) {
+    public Modal(ClientCoordinator actionHandler, String title, int width, int margin, int gap) {
         this.actionHandler = actionHandler;
         this.title = title;
         this.width = width;
@@ -48,7 +46,7 @@ public abstract class Modal {
         this.gap = gap;
     }
 
-    public Modal(ClientActionHandler actionHandler, String title, int width) {
+    public Modal(ClientCoordinator actionHandler, String title, int width) {
         this(actionHandler, title, width, DEFAULT_MARGIN, DEFAULT_GAP);
     }
 

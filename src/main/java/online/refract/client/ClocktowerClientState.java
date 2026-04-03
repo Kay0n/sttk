@@ -6,15 +6,15 @@ import online.refract.game.state.ClocktowerState;
 
 public class ClocktowerClientState {
     
-    private static ClocktowerState state = ClocktowerState.EMPTY;
+    private ClocktowerState state = ClocktowerState.EMPTY;
     // private static TownConnectionStatus previousConnectionStatus = TownConnectionStatus.DISCONNECTED;
-    private static GrimoireScreen grimoireScreen;
+    private GrimoireScreen grimoireScreen;
     
-    public static void setGrimoireScreen(GrimoireScreen screen) {
+    public void setGrimoireScreen(GrimoireScreen screen) {
         grimoireScreen = screen;
     }
     
-    public static void onRecieveState(ClocktowerState newState) {
+    public void onRecieveState(ClocktowerState newState) {
         state = newState;
         
         // // notify UI only if connection status changed
@@ -27,7 +27,7 @@ public class ClocktowerClientState {
         grimoireScreen.onStateUpdated();
     }
     
-    public static ClocktowerState getState() {
+    public ClocktowerState getState() {
         return state;
     }
 }

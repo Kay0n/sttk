@@ -4,17 +4,18 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import online.refract.client.ClientActionHandler;
-import online.refract.client.ClocktowerClientState;
+import online.refract.client.ClientCoordinator;
 import online.refract.game.state.ClocktowerState;
 import online.refract.game.state.Enums.TownConnectionStatus;
 
 public class TownModal extends Modal {
 
     private EditBox townNameBox;
+    private final ClientCoordinator coordinator;
 
-    public TownModal(ClientActionHandler actionHandler) {
-        super(actionHandler, "Connect to Town", 200);
+    public TownModal(ClientCoordinator coordinator) {
+        super(coordinator, "Connect to Town", 200);
+        this.coordinator = coordinator;
     }
 
     @Override
@@ -31,7 +32,7 @@ public void updateComponents() {
     String savedValue = this.townNameBox != null ? this.townNameBox.getValue() : "";
     boolean isFirstTimeOpen = this.townNameBox == null;
 
-    ClocktowerState state = ClocktowerClientState.getState();
+    ClocktowerState state = coordinator.getState();
     TownConnectionStatus status = state.townConnectionStatus();
 
     this.clearWidgets();
@@ -59,14 +60,14 @@ public void updateComponents() {
         Component.literal(status == TownConnectionStatus.CONNECTED ? "Disconnect" : "Connect"),
         () -> {
             if (status == TownConnectionStatus.CONNECTED) {
-                ClientActionHandler.debug("Disconnecting from town");
-                actionHandler.sendDisconnectFromTown();
+                ClientCoordinator.debug("Disconnecting from town");
+                actionHandler.disconnectFromTown();
             } else {
                 String townName = townNameBox.getValue();
                 if (townName.isEmpty()) { return; }
-                ClientActionHandler.debug("Attempting to connect to town: " + townName);
+                ClientCoordinator.debug("Attempting to connect to town: " + townName);
                 title = "Connecting...";
-                actionHandler.sendConnectToTown(townName);
+                actionHandler.connectToTown(townName);
             }
         }
     );

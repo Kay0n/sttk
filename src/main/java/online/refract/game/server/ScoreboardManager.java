@@ -62,7 +62,7 @@ public class ScoreboardManager {
     public void startVoteForPlayer(ClocktowerPlayer player, ClocktowerState state) {
         Scoreboard scoreboard = server.getScoreboard();
 
-        int startingId = getPlayerIdFromState(player, state);
+        int startingId = getPlayerOrderNumber(player, state);
         if (startingId == -1) return;
 
         setScore(scoreboard, GLOBAL_HOLDER, VOTE_STARTING_PLAYER, startingId);
@@ -100,10 +100,10 @@ public class ScoreboardManager {
         scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(objectiveName), objective).set(value);
     }
 
-    private int getPlayerIdFromState(ClocktowerPlayer player, ClocktowerState state) {
+    private int getPlayerOrderNumber(ClocktowerPlayer player, ClocktowerState state) {
         List<ClocktowerPlayer> players = state.players();
         for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).linkedMinecraftUsername().equals(player.linkedMinecraftUsername())) {
+            if (players.get(i).name().equals(player.name())) {
                 return i + 1;
             }
         }

@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
-import online.refract.client.ClientActionHandler;
+import online.refract.client.ClientCoordinator;
 import online.refract.game.state.ClocktowerPlayer;
 
 public class LinkPlayerModal extends Modal {
@@ -13,7 +13,7 @@ public class LinkPlayerModal extends Modal {
     private SelectionWidget<String> playerListWidget;
     private ClocktowerPlayer linkingPlayer;
 
-    public LinkPlayerModal(ClientActionHandler actionHandler) {
+    public LinkPlayerModal(ClientCoordinator actionHandler) {
         super(actionHandler, "Link Player", 250);
     }
 
@@ -37,11 +37,9 @@ public class LinkPlayerModal extends Modal {
                     if (linkingPlayer != null) {
                         String selectedPlayerName = playerListWidget.getSelectedValue();
                         if (selectedPlayerName == null) {
-                            this.actionHandler.debug("No player selected");
                             return;
                         }
-                        this.actionHandler.sendLinkUsername(linkingPlayer, selectedPlayerName);
-                        this.actionHandler.debug("Linking player: " + linkingPlayer.name() + " with username: " + selectedPlayerName);
+                        this.actionHandler.linkUsername(linkingPlayer, selectedPlayerName);
                     }
                     closeModal();
                 }
@@ -70,8 +68,7 @@ public class LinkPlayerModal extends Modal {
 
         Minecraft mc = Minecraft.getInstance();
 
-        if (mc.getConnection() == null) {
-            this.actionHandler.debug("No connection - cannot fetch player list");
+        if (mc.getConnection() == null) { // TODO: needed?
             return;
         }
 

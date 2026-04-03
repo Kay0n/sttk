@@ -30,27 +30,27 @@ public record ClocktowerRole(
         Codec.STRING.fieldOf("other_night_reminder").forGetter(ClocktowerRole::otherNightReminder)
     ).apply(instance, ClocktowerRole::new));
     
-    // uses StreamCodec.of instead of composite as composite has 6 a argument limit 
+    // uses StreamCodec.of instead of StreamCodec.composite as composite has a 12 (6 pairs) argument overload limit 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerRole> STREAM_CODEC = StreamCodec.of(
-    (buf, role) -> {
-        ByteBufCodecs.STRING_UTF8.encode(buf, role.name());
-        RoleType.STREAM_CODEC.encode(buf, role.type());
-        Alignment.STREAM_CODEC.encode(buf, role.alignment());
-        ByteBufCodecs.STRING_UTF8.encode(buf, role.iconUrl());
-        ByteBufCodecs.STRING_UTF8.encode(buf, role.abilityText());
-        ByteBufCodecs.STRING_UTF8.encode(buf, role.edition());
-        ByteBufCodecs.STRING_UTF8.encode(buf, role.firstNightReminder());
-        ByteBufCodecs.STRING_UTF8.encode(buf, role.otherNightReminder());
-    },
-    buf -> new ClocktowerRole(
-        ByteBufCodecs.STRING_UTF8.decode(buf),
-        RoleType.STREAM_CODEC.decode(buf),
-        Alignment.STREAM_CODEC.decode(buf),
-        ByteBufCodecs.STRING_UTF8.decode(buf),
-        ByteBufCodecs.STRING_UTF8.decode(buf),
-        ByteBufCodecs.STRING_UTF8.decode(buf),
-        ByteBufCodecs.STRING_UTF8.decode(buf),
-        ByteBufCodecs.STRING_UTF8.decode(buf)
-    )
-);
+        (buf, role) -> {
+            ByteBufCodecs.STRING_UTF8.encode(buf, role.name());
+            RoleType.STREAM_CODEC.encode(buf, role.type());
+            Alignment.STREAM_CODEC.encode(buf, role.alignment());
+            ByteBufCodecs.STRING_UTF8.encode(buf, role.iconUrl());
+            ByteBufCodecs.STRING_UTF8.encode(buf, role.abilityText());
+            ByteBufCodecs.STRING_UTF8.encode(buf, role.edition());
+            ByteBufCodecs.STRING_UTF8.encode(buf, role.firstNightReminder());
+            ByteBufCodecs.STRING_UTF8.encode(buf, role.otherNightReminder());
+        },
+        buf -> new ClocktowerRole(
+            ByteBufCodecs.STRING_UTF8.decode(buf),
+            RoleType.STREAM_CODEC.decode(buf),
+            Alignment.STREAM_CODEC.decode(buf),
+            ByteBufCodecs.STRING_UTF8.decode(buf),
+            ByteBufCodecs.STRING_UTF8.decode(buf),
+            ByteBufCodecs.STRING_UTF8.decode(buf),
+            ByteBufCodecs.STRING_UTF8.decode(buf),
+            ByteBufCodecs.STRING_UTF8.decode(buf)
+        )
+    );
 }

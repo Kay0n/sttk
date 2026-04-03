@@ -17,11 +17,11 @@ public class SelectionWidget<T> extends ObjectSelectionList<SelectionWidget<T>.E
     }
 
     public void addEntry(T item) {
-        this.addEntry(new Entry(item));
+        super.addEntry(new Entry(item));
     }
 
     public void clearEntries() {
-        this.clearEntries();
+        super.clearEntries();
     }
 
     public T getSelectedValue() {

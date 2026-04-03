@@ -22,7 +22,8 @@ public record ClocktowerPlayer(
     boolean isDead,
     boolean hasUsedGhostVote,
     boolean isNominated
-) {
+){
+    
     public ClocktowerPlayer(String name) {
         this(
             name,
@@ -35,9 +36,13 @@ public record ClocktowerPlayer(
         );
     }
 
+
+
     public boolean isLinked(){
         return (linkedMinecraftUsername != null);
     }
+
+
 
     public ClocktowerPlayer withLinkedMinecraftUsername(String username) {
         return new ClocktowerPlayer(
@@ -50,8 +55,6 @@ public record ClocktowerPlayer(
             isNominated
         );
     }
-
-
 
 
 
@@ -70,6 +73,8 @@ public record ClocktowerPlayer(
             (name, role, align, linkedName, dead, gv, nom) ->
             new ClocktowerPlayer(name, role, align, linkedName.orElse(null), dead, gv, nom)
         ));
+
+
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerPlayer> STREAM_CODEC = StreamCodec.of(
         (buf, player) -> {

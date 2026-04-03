@@ -7,7 +7,7 @@ import online.refract.game.server.ModCommands;
 import online.refract.game.server.ScoreboardManager;
 import online.refract.game.server.ServerPacketReceiver;
 import online.refract.http.TownConnectionHandler;
-import online.refract.game.server.ClocktowerServerStateManager;
+import online.refract.game.server.ServerCoordinator;
 import online.refract.network.S2CPackets;
 import online.refract.network.C2SPackets;
 
@@ -21,10 +21,10 @@ public class Sttk implements ModInitializer {
     public static int              SERVER_PLAYER_COUNT = 13;
     public static final String     SSE_BASE_URL = "http://127.0.0.1:3000/stream"; 
 
-
-    public ClocktowerServerStateManager stateManager;
+    public ServerCoordinator serverCoordinator;
     public TownConnectionHandler townConnectionHandler;
     public ScoreboardManager scoreboardManager;
+
 
 
 
@@ -32,30 +32,31 @@ public class Sttk implements ModInitializer {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 
-    // public class ServerContext {
-    //     public static ClocktowerServerStateManager STATE_MANAGER;
-    // }
 
     @Override
     public void onInitialize() {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             scoreboardManager = new ScoreboardManager(server);
-            stateManager = new ClocktowerServerStateManager(server, scoreboardManager);
-            townConnectionHandler = new TownConnectionHandler(SSE_BASE_URL, stateManager);
-            ServerPacketReceiver.register(townConnectionHandler, stateManager, scoreboardManager);
+            townConnectionHandler = new TownConnectionHandler(SSE_BASE_URL);
+            serverCoordinator = new ServerCoordinator(server, scoreboardManager, townConnectionHandler);
+
+            ServerPacketReceiver.register(serverCoordinator);
         });
 
 
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            townConnectionHandler.disconnect();
+        });
+
         C2SPackets.registerPackets();
         S2CPackets.registerPackets();
-
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ModCommands.register(dispatcher);
         });
 
-
-
     }
+
+    
 }

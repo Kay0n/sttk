@@ -115,8 +115,10 @@ public class C2SPackets {
     public static void registerPackets() {
         PayloadTypeRegistry.playC2S().register(StartVoteForPlayerPayload.ID, StartVoteForPlayerPayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(StopVotePayload.ID, StopVotePayload.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(DistributeRolesToTownPayload.ID, DistributeRolesToTownPayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RequestPrivateChatPayload.ID, RequestPrivateChatPayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RequestTeleportToPlayerPayload.ID, RequestTeleportToPlayerPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(RequestTeleportToHousePayload.ID, RequestTeleportToHousePayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(LinkUsernamePayload.ID, LinkUsernamePayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(ConnectToTownPayload.ID, ConnectToTownPayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(DisconnectFromTownPayload.ID, DisconnectFromTownPayload.STREAM_CODEC);
