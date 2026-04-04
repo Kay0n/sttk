@@ -76,7 +76,7 @@ public class ClocktowerStateConverter {
         boolean isGood = roleNode.get("alignment").asText().equals("Good");
         boolean isNominated = roleNode.get("onTheBlock").asBoolean();
         boolean isDead = !playerNode.get("alive").asBoolean();
-        boolean hasUsedGhostVote = playerNode.has("ghostvote") ? playerNode.get("ghostvote").asBoolean() : false;
+        boolean hasUsedGhostVote = !playerNode.get("ghostvote").asBoolean(); // TODO: switch state to hasGhostVote
         String linkedMinecraftUsername = player != null ? player.linkedMinecraftUsername() : "";
 
         return new ClocktowerPlayer(

@@ -127,7 +127,7 @@ public class GrimoireScreen extends Screen {
             if (b.mouseClicked(mouseX, mouseY, button)) return true;
 
         if (button == 0) {
-            ClocktowerPlayer clickedPlayer = tokenRenderer.hitTest(clientCoordinator.getState().players(), mouseX, mouseY, width, height);
+            ClocktowerPlayer clickedPlayer = tokenRenderer.wasTokenClicked(clientCoordinator.getState().players(), mouseX, mouseY, width, height);
             if (clickedPlayer != null) {
                 playerModal.openModal(clickedPlayer);
                 return true;
