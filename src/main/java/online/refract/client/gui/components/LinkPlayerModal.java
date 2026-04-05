@@ -55,7 +55,8 @@ public class LinkPlayerModal extends Modal {
 
 
 
-    @Override    
+    @Override
+    @Deprecated
     public void openModal() {
         throw new RuntimeException("Use openModal(ClocktowerPlayer player) instead");
     }

@@ -1,7 +1,7 @@
 package online.refract.client;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import online.refract.Sttk;
+import online.refract.client.gui.screens.grimiore.GrimoireScreen;
 import online.refract.client.render.hud.RoleRevealAnimation;
 import online.refract.game.state.ClocktowerPlayer;
 import online.refract.game.state.ClocktowerState;
@@ -10,19 +10,32 @@ import net.minecraft.client.Minecraft;
 
 public class ClientCoordinator {
 
-    private final ClocktowerClientState clientState;
+    private ClocktowerState clientState = ClocktowerState.EMPTY;
+    private GrimoireScreen grimoireScreen;
 
-    public ClientCoordinator(ClocktowerClientState clientState) {
-        this.clientState = clientState;
+
+    public void setGrimoireScreen(GrimoireScreen screen) {
+        grimoireScreen = screen;
     }
+
 
     public ClocktowerState getState() {
-        return clientState.getState();
+        return clientState;
+    }
+    
+    public void onRecieveState(ClocktowerState newState) {
+        clientState = newState;
+        
+        // // notify UI only if connection status changed
+        // TownConnectionStatus newStatus = newState.townConnectionStatus();
+        // if (newStatus != previousConnectionStatus && grimoireScreen != null) {
+        //     previousConnectionStatus = newStatus;
+        //     grimoireScreen.onStateUpdated();
+        // }
+
+        grimoireScreen.onStateUpdated();
     }
 
-    public void onRecieveState(ClocktowerState newState) {
-        clientState.onRecieveState(newState);
-    }
 
     
     public void playShowRoleAnimation() {

@@ -1,7 +1,6 @@
 package online.refract.client;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import online.refract.Sttk;
 import online.refract.network.S2CPackets;
 
 public class ClientPacketReceiver {

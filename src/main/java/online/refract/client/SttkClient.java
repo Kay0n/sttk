@@ -18,8 +18,7 @@ public class SttkClient implements ClientModInitializer {
     public static final String MOD_ID = "sttk";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static KeyMapping OPEN_GRIMOIRE_KEY;
-    public final ClocktowerClientState clientState = new ClocktowerClientState();
-    public final ClientCoordinator coordinator = new ClientCoordinator(clientState);
+    public final ClientCoordinator coordinator = new ClientCoordinator();
 
     
     @Override
@@ -42,7 +41,7 @@ public class SttkClient implements ClientModInitializer {
                 else {
                     GrimoireScreen grimoireScreen = new GrimoireScreen(coordinator);
                     client.setScreen(grimoireScreen);
-                    clientState.setGrimoireScreen(grimoireScreen);
+                    coordinator.setGrimoireScreen(grimoireScreen);
                 }
             }
         });
