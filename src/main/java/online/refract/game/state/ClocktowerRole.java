@@ -12,42 +12,33 @@ import online.refract.game.state.Enums.RoleType;
 public record ClocktowerRole(
     String name,
     RoleType type,
-    Alignment alignment,
-    String iconUrl,
+    Alignment defaultAlignment,
+    String alignedIconUrl,
     String abilityText,
-    String edition,
-    String firstNightReminder,
-    String otherNightReminder
+    String edition
 ) {
     public static final Codec<ClocktowerRole> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.STRING.fieldOf("name").forGetter(ClocktowerRole::name),
         RoleType.CODEC.fieldOf("type").forGetter(ClocktowerRole::type),
-        Alignment.CODEC.fieldOf("alignment").forGetter(ClocktowerRole::alignment),
-        Codec.STRING.fieldOf("icon").forGetter(ClocktowerRole::iconUrl),
+        Alignment.CODEC.fieldOf("alignment").forGetter(ClocktowerRole::defaultAlignment),
+        Codec.STRING.fieldOf("aligned_icon_url").forGetter(ClocktowerRole::alignedIconUrl),
         Codec.STRING.fieldOf("ability").forGetter(ClocktowerRole::abilityText),
-        Codec.STRING.fieldOf("edition").forGetter(ClocktowerRole::edition),
-        Codec.STRING.fieldOf("first_night_reminder").forGetter(ClocktowerRole::firstNightReminder),
-        Codec.STRING.fieldOf("other_night_reminder").forGetter(ClocktowerRole::otherNightReminder)
+        Codec.STRING.fieldOf("edition").forGetter(ClocktowerRole::edition)
     ).apply(instance, ClocktowerRole::new));
-    
-    // uses StreamCodec.of instead of StreamCodec.composite as composite has a 12 (6 pairs) argument overload limit 
+
     public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerRole> STREAM_CODEC = StreamCodec.of(
         (buf, role) -> {
             ByteBufCodecs.STRING_UTF8.encode(buf, role.name());
             RoleType.STREAM_CODEC.encode(buf, role.type());
-            Alignment.STREAM_CODEC.encode(buf, role.alignment());
-            ByteBufCodecs.STRING_UTF8.encode(buf, role.iconUrl());
+            Alignment.STREAM_CODEC.encode(buf, role.defaultAlignment());
+            ByteBufCodecs.STRING_UTF8.encode(buf, role.alignedIconUrl());
             ByteBufCodecs.STRING_UTF8.encode(buf, role.abilityText());
             ByteBufCodecs.STRING_UTF8.encode(buf, role.edition());
-            ByteBufCodecs.STRING_UTF8.encode(buf, role.firstNightReminder());
-            ByteBufCodecs.STRING_UTF8.encode(buf, role.otherNightReminder());
         },
         buf -> new ClocktowerRole(
             ByteBufCodecs.STRING_UTF8.decode(buf),
             RoleType.STREAM_CODEC.decode(buf),
             Alignment.STREAM_CODEC.decode(buf),
-            ByteBufCodecs.STRING_UTF8.decode(buf),
-            ByteBufCodecs.STRING_UTF8.decode(buf),
             ByteBufCodecs.STRING_UTF8.decode(buf),
             ByteBufCodecs.STRING_UTF8.decode(buf),
             ByteBufCodecs.STRING_UTF8.decode(buf)

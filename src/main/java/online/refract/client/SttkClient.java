@@ -18,7 +18,9 @@ public class SttkClient implements ClientModInitializer {
     public static final String MOD_ID = "sttk";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static KeyMapping OPEN_GRIMOIRE_KEY;
-    public final ClientCoordinator coordinator = new ClientCoordinator();
+
+    public final ClientAssetCache assetCache = new ClientAssetCache();
+    public final ClientCoordinator coordinator = new ClientCoordinator(assetCache);
 
     
     @Override

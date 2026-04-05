@@ -39,7 +39,7 @@ public class ClocktowerStateConverter {
 
             for (JsonNode playerNode : playersNode) {
                 String playerName = playerNode.get("name").asText();
-                ClocktowerPlayer existingPlayer = existingPlayersByName.get(playerName); // can be null, representing "new" player
+                ClocktowerPlayer existingPlayer = existingPlayersByName.get(playerName); // can be null, representing "new" player // TODO:  check this
                 players.add(updateClocktowerPlayer(existingPlayer, playerNode));
             }
         }
@@ -63,7 +63,7 @@ public class ClocktowerStateConverter {
             townName,
             scriptEdition,
             currentState.isVoteActive(), 
-            TownConnectionStatus.CONNECTED // townConnectionStatus - default to CONNECTED        TODO: Check if correct
+            TownConnectionStatus.CONNECTED
         );
     }
 
@@ -72,8 +72,9 @@ public class ClocktowerStateConverter {
     private static ClocktowerPlayer updateClocktowerPlayer(@Nullable ClocktowerPlayer player , JsonNode playerNode) {
         String name = playerNode.get("name").asText();
         JsonNode roleNode = playerNode.get("roles").get(0);
-        String roleName = roleNode.get("name").asText();
         boolean isGood = roleNode.get("alignment").asText().equals("Good");
+        String roleName = roleNode.get("name").asText();
+        String alignedIconUrl = isGood ? roleNode.get("officialGoodIcon").asText() : roleNode.get("officialEvilIcon").asText();
         boolean isNominated = roleNode.get("onTheBlock").asBoolean();
         boolean isDead = !playerNode.get("alive").asBoolean();
         boolean hasUsedGhostVote = !playerNode.get("ghostvote").asBoolean(); // TODO: switch state to hasGhostVote
@@ -81,8 +82,9 @@ public class ClocktowerStateConverter {
 
         return new ClocktowerPlayer(
             name,
-            roleName,
             isGood ? Alignment.GOOD : Alignment.EVIL, 
+            roleName,
+            alignedIconUrl,
             linkedMinecraftUsername,
             isDead, 
             hasUsedGhostVote,
@@ -90,28 +92,23 @@ public class ClocktowerStateConverter {
         );
     }
 
-    private static ClocktowerRole getClocktowerRole(JsonNode roleNode) {
-        String name = roleNode.get("name").asText();
-        String typeStr = roleNode.get("type").asText();
-        RoleType type = RoleType.from(typeStr);
-        boolean isGood = roleNode.get("alignment").asText().equals("Good");
-        String iconUrl = roleNode.get("icon").asText();
-        String abilityText = roleNode.get("ability").asText();
-        String edition = roleNode.get("edition").asText();
-        String firstNightReminder = roleNode.get("firstNightReminder") != null ? roleNode.get("firstNightReminder").asText() : "";
-        String otherNightReminder = roleNode.get("otherNightReminder") != null ? roleNode.get("otherNightReminder").asText() : "";
-        
-        return new ClocktowerRole(
-            name,
-            type,
-            isGood ? Alignment.GOOD : Alignment.EVIL, 
-            iconUrl,
-            abilityText,
-            edition,
-            firstNightReminder,
-            otherNightReminder
-        );
-    }
+private static ClocktowerRole getClocktowerRole(JsonNode roleNode) {
+    String name = roleNode.get("name").asText();
+    String typeStr = roleNode.get("type").asText();
+    RoleType type = RoleType.from(typeStr);
+    boolean isGood = roleNode.get("alignment").asText().equals("Good");
+    String alignedIconUrl = isGood ? roleNode.get("officialGoodIcon").asText() : roleNode.get("officialEvilIcon").asText();
+    String abilityText = roleNode.get("ability").asText();
+    String edition = roleNode.get("edition").asText();
+    return new ClocktowerRole(
+        name,
+        type,
+        isGood ? Alignment.GOOD : Alignment.EVIL,
+        alignedIconUrl,
+        abilityText,
+        edition
+    );
+}
 
 
 }

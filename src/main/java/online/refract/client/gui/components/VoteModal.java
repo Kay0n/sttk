@@ -48,7 +48,7 @@ public class VoteModal extends Modal {
 
 
     @Override    
-    @Deprecated(forRemoval = true)
+    @Deprecated
     public void openModal() {
         throw new RuntimeException("Use openModal(ClocktowerState state) instead");
     }

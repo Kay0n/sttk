@@ -13,11 +13,22 @@ public class ClientPacketReceiver {
             }
         );
         ClientPlayNetworking.registerGlobalReceiver(
-            S2CPackets.ShowRoleAnimationPacket.ID,
+            S2CPackets.ShowRoleAnimationPayload.ID,
             (payload, context) -> {
                 clientCoordinator.playShowRoleAnimation();
             }
         );
+            ClientPlayNetworking.registerGlobalReceiver(
+                S2CPackets.AssetResponsePayload.ID,
+                (payload, context) -> {
+                    clientCoordinator.onAssetChunkReceived(
+                        payload.assetUrl(),
+                        payload.chunkIndex(),
+                        payload.totalChunks(),
+                        payload.chunkData()
+                    );
+                }
+            );
     }
     
 }

@@ -30,6 +30,9 @@ dependencies {
     
     // OkHttp for server-side HTTP/SSE
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
+	
+	// imageio-webp for WebP image reading
+	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.12.0'
 }
 
 processResources {

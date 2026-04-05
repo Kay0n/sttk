@@ -1,6 +1,8 @@
 package online.refract.game.state;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 
 import com.mojang.serialization.Codec;
@@ -84,6 +86,13 @@ public record ClocktowerState(
         );
     }
 
+    public java.util.Set<String> allAssetUrls() {
+        Set<String> urls = new HashSet<>();
+        players.forEach(p -> urls.add(p.alignedIconUrl()));
+        roles.forEach(r -> urls.add(r.alignedIconUrl()));
+        return urls;
+    }
+
     public static final Codec<ClocktowerState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.list(ClocktowerPlayer.CODEC).fieldOf("players").forGetter(ClocktowerState::players),
         Codec.list(ClocktowerRole.CODEC).fieldOf("roles").forGetter(ClocktowerState::roles),
@@ -96,6 +105,7 @@ public record ClocktowerState(
             .forGetter(ClocktowerState::townConnectionStatus)
     ).apply(instance, ClocktowerState::new));
 
+    // uses StreamCodec.of instead of StreamCodec.composite as composite has a 12 (6 pairs) argument overload limit 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerState> STREAM_CODEC = StreamCodec.of(
         (buf, state) -> {
             ClocktowerPlayer.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, state.players());

@@ -1,6 +1,7 @@
 package online.refract.game.server;
 
-import online.refract.network.S2CPackets.ShowRoleAnimationPacket;
+import online.refract.network.S2CPackets.AssetResponsePayload;
+import online.refract.network.S2CPackets.ShowRoleAnimationPayload;
 import online.refract.network.S2CPackets.SyncStatePayload;
 import online.refract.Sttk;
 import online.refract.game.state.ClocktowerPlayer;
@@ -16,6 +17,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
@@ -27,12 +30,14 @@ public class ServerCoordinator {
     private MinecraftServer server;
     private ScoreboardManager scoreboardManager;
     private TownConnectionHandler townConnectionHandler;
+    private ServerAssetCache assetCache;
 
-    public ServerCoordinator(MinecraftServer server, ScoreboardManager scoreboardManager, TownConnectionHandler townConnectionHandler) {
+    public ServerCoordinator(MinecraftServer server, ScoreboardManager scoreboardManager, TownConnectionHandler townConnectionHandler, ServerAssetCache assetCache) {
         this.server = server;
         this.scoreboardManager = scoreboardManager;
         this.townConnectionHandler = townConnectionHandler;
         this.townConnectionHandler.setConnectionListener(event -> server.execute(() -> this.onSSEEvent(event)));
+        this.assetCache = assetCache;
     }
 
     public void updateVoteActive(boolean active) {
@@ -89,35 +94,27 @@ public class ServerCoordinator {
 
 
     public void distributeRolesToTown() {
-        sendToAllClients(new ShowRoleAnimationPacket());
+        sendToAllClients(new ShowRoleAnimationPayload());
     }
 
 
-
-    public void onSSEEvent(ConnectionEvent event) {
-        try {
-            switch (event) {
-
-                case StatusChanged(TownConnectionStatus status) -> {
-                    if (status == TownConnectionStatus.DISCONNECTED) {
-                        this.state = ClocktowerState.EMPTY;
-                        syncState();
-                        break;
-                    }
-                    this.updateConnectionStatus(status);
-                }
-
-                case DataReceived(String data, String townName) -> {
-                    this.state = ClocktowerStateConverter.parseJsonToState(this.state, data, townName);
-                    syncState();
-                }
-
-            }   
-        } 
-        catch (IOException e) {
-            Sttk.LOGGER.error("Failed to parse SSE data: {}", e.getMessage());
+    public void sendAssetsToClient(ServerPlayer player, List<String> assetUrls) {
+        int chunkSize   = AssetResponsePayload.CHUNK_SIZE;
+        for (String url : assetUrls) {
+            byte[] asset = assetCache.getOrFetch(url).join();
+            int totalChunks = (int) Math.ceil((double) asset.length / chunkSize);
+            for (int i = 0; i < totalChunks; i++) {
+                int start = i * chunkSize;
+                int end = Math.min(start + chunkSize, asset.length);
+                byte[] chunk = Arrays.copyOfRange(asset, start, end);
+                ServerPlayNetworking.send(player, new AssetResponsePayload(url, i, totalChunks, chunk));
+            }
         }
     }
+
+
+
+
 
 
 
@@ -140,6 +137,29 @@ public class ServerCoordinator {
     public void sendToAllClients(CustomPacketPayload payload) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()){
             ServerPlayNetworking.send(player, payload);
+        }
+    }
+
+
+    public void onSSEEvent(ConnectionEvent event) {
+        try {
+            switch (event) {
+                case StatusChanged(TownConnectionStatus status) -> {
+                    if (status != TownConnectionStatus.CONNECTED) {
+                        this.state = ClocktowerState.EMPTY;
+                        syncState();
+                        break;
+                    }
+                    this.updateConnectionStatus(status);
+                }
+                case DataReceived(String data, String townName) -> {
+                    this.state = ClocktowerStateConverter.parseJsonToState(this.state, data, townName);
+                    syncState();
+                }
+            }   
+        } 
+        catch (IOException e) {
+            Sttk.LOGGER.error("Failed to parse SSE data: {}", e.getMessage());
         }
     }
 

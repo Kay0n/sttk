@@ -2,6 +2,7 @@ package online.refract.network;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -15,8 +16,7 @@ public class S2CPackets {
         public static final ResourceLocation SYNC_STATE_PAYLOAD_ID = ResourceLocation.fromNamespaceAndPath(Sttk.MOD_ID, "sync_state");
         public static final CustomPacketPayload.Type<SyncStatePayload> ID = new CustomPacketPayload.Type<>(SYNC_STATE_PAYLOAD_ID);
         public static final StreamCodec<RegistryFriendlyByteBuf, SyncStatePayload> CODEC = StreamCodec.composite(
-            ClocktowerState.STREAM_CODEC,
-            SyncStatePayload::state, 
+            ClocktowerState.STREAM_CODEC, SyncStatePayload::state, 
             SyncStatePayload::new
         );
 
@@ -25,18 +25,38 @@ public class S2CPackets {
     }
 
     
-    public record ShowRoleAnimationPacket() implements CustomPacketPayload {
+    public record ShowRoleAnimationPayload() implements CustomPacketPayload {
         public static final ResourceLocation SHOW_ROLE_ANIMATION_PACKET_ID = ResourceLocation.fromNamespaceAndPath(Sttk.MOD_ID, "show_role_animation");
-        public static final CustomPacketPayload.Type<ShowRoleAnimationPacket> ID = new CustomPacketPayload.Type<>(SHOW_ROLE_ANIMATION_PACKET_ID);
-        public static final StreamCodec<RegistryFriendlyByteBuf, ShowRoleAnimationPacket> CODEC = StreamCodec.unit(new ShowRoleAnimationPacket());
+        public static final CustomPacketPayload.Type<ShowRoleAnimationPayload> ID = new CustomPacketPayload.Type<>(SHOW_ROLE_ANIMATION_PACKET_ID);
+        public static final StreamCodec<RegistryFriendlyByteBuf, ShowRoleAnimationPayload> CODEC = StreamCodec.unit(new ShowRoleAnimationPayload());
         @Override
         public Type<? extends CustomPacketPayload> type() { return ID; }
     }
 
 
+    
+
+    public record AssetResponsePayload(String assetUrl, int chunkIndex, int totalChunks, byte[] chunkData) implements CustomPacketPayload {
+        public static final int CHUNK_SIZE = 256 * 1024; // 256KB
+        public static final ResourceLocation ASSET_RESPONSE_PACKET_ID = ResourceLocation.fromNamespaceAndPath(Sttk.MOD_ID, "asset_response");
+        public static final CustomPacketPayload.Type<AssetResponsePayload> ID = new CustomPacketPayload.Type<>(ASSET_RESPONSE_PACKET_ID);
+        public static final StreamCodec<RegistryFriendlyByteBuf, AssetResponsePayload> CODEC =
+            StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8,        AssetResponsePayload::assetUrl,
+                ByteBufCodecs.INT,                AssetResponsePayload::chunkIndex,
+                ByteBufCodecs.INT,                AssetResponsePayload::totalChunks,
+                ByteBufCodecs.byteArray(256 * 1024), AssetResponsePayload::chunkData,
+                AssetResponsePayload::new
+            );
+
+        @Override public Type<? extends CustomPacketPayload> type() { return ID; }
+    }
+
+
     public static void registerPackets() {
         PayloadTypeRegistry.playS2C().register(SyncStatePayload.ID, SyncStatePayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ShowRoleAnimationPacket.ID, ShowRoleAnimationPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(ShowRoleAnimationPayload.ID, ShowRoleAnimationPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(AssetResponsePayload.ID, AssetResponsePayload.CODEC);
     }
 
     

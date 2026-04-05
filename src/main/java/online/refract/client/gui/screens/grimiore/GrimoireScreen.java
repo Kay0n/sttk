@@ -1,6 +1,5 @@
 package online.refract.client.gui.screens.grimiore;
 
-import online.refract.Sttk;
 import online.refract.client.ClientCoordinator;
 import online.refract.client.SttkClient;
 import online.refract.client.gui.components.LinkPlayerModal;
@@ -71,7 +70,7 @@ public class GrimoireScreen extends Screen {
         ClocktowerState state = clientCoordinator.getState();
         TownConnectionStatus status = state.townConnectionStatus();
 
-        globalButtons.add(makeButton("🏘 Town", width - 74, height - 24, () -> townModal.openModal()));
+        globalButtons.add(makeButton("Town", width - 74, height - 24, () -> townModal.openModal()));
 
         if (status == TownConnectionStatus.CONNECTED) {
 
@@ -110,7 +109,7 @@ public class GrimoireScreen extends Screen {
         boolean anyModalOpen = modals.stream().anyMatch(Modal::isOpen);
         globalButtons.forEach(b -> b.active = !anyModalOpen);
 
-        tokenRenderer.render(gfx, font, clientCoordinator.getState().players(), width, height);
+        tokenRenderer.render(gfx, font, clientCoordinator.getState().players(), width, height, clientCoordinator.getAssetCache());
 
         modals.forEach(m -> m.render(gfx, mouseX, mouseY, delta));
         super.render(gfx, mouseX, mouseY, delta);

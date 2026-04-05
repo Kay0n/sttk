@@ -1,5 +1,8 @@
 package online.refract.network;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import online.refract.game.state.ClocktowerPlayer;
@@ -10,15 +13,6 @@ import online.refract.Sttk;
 
 public class C2SPackets {
 
-    // public record ToggleVotePayload(boolean active) implements CustomPacketPayload {
-    //     public static final Type<ToggleVotePayload> ID = new Type<>(Sttk.id("toggle_vote"));
-    //     public static final StreamCodec<RegistryFriendlyByteBuf, ToggleVotePayload> STREAM_CODEC = StreamCodec.composite(
-    //         ByteBufCodecs.BOOL, ToggleVotePayload::active,
-    //         ToggleVotePayload::new
-    //     );
-    //     @Override
-    //     public Type<? extends CustomPacketPayload> type() { return ID; }
-    // }
 
     public record StartVoteForPlayerPayload(ClocktowerPlayer player) implements CustomPacketPayload {
         public static final Type<StartVoteForPlayerPayload> ID = new Type<>(Sttk.id("start_vote_for_player"));
@@ -110,6 +104,16 @@ public class C2SPackets {
         public Type<? extends CustomPacketPayload> type() { return ID; }
     }
 
+    public record AssetRequestPayload(List<String> assetUrls) implements CustomPacketPayload {
+        public static final Type<AssetRequestPayload> ID = new Type<>(Sttk.id("asset_request"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, AssetRequestPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8), AssetRequestPayload::assetUrls,
+            AssetRequestPayload::new
+        );
+        @Override
+        public Type<? extends CustomPacketPayload> type() { return ID; }
+    }
+
 
 
     public static void registerPackets() {
@@ -122,5 +126,6 @@ public class C2SPackets {
         PayloadTypeRegistry.playC2S().register(LinkUsernamePayload.ID, LinkUsernamePayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(ConnectToTownPayload.ID, ConnectToTownPayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(DisconnectFromTownPayload.ID, DisconnectFromTownPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(AssetRequestPayload.ID, AssetRequestPayload.STREAM_CODEC);
     }
 }

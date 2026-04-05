@@ -1,5 +1,7 @@
 package online.refract.client;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import online.refract.client.gui.screens.grimiore.GrimoireScreen;
 import online.refract.client.render.hud.RoleRevealAnimation;
@@ -7,11 +9,18 @@ import online.refract.game.state.ClocktowerPlayer;
 import online.refract.game.state.ClocktowerState;
 import online.refract.network.C2SPackets;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 
 public class ClientCoordinator {
 
     private ClocktowerState clientState = ClocktowerState.EMPTY;
     private GrimoireScreen grimoireScreen;
+    private ClientAssetCache assetCache;
+
+
+    public ClientCoordinator(ClientAssetCache assetCache) {
+        this.assetCache = assetCache;
+    }
 
 
     public void setGrimoireScreen(GrimoireScreen screen) {
@@ -25,14 +34,8 @@ public class ClientCoordinator {
     
     public void onRecieveState(ClocktowerState newState) {
         clientState = newState;
+        assetCache.onStateReceived(newState);
         
-        // // notify UI only if connection status changed
-        // TownConnectionStatus newStatus = newState.townConnectionStatus();
-        // if (newStatus != previousConnectionStatus && grimoireScreen != null) {
-        //     previousConnectionStatus = newStatus;
-        //     grimoireScreen.onStateUpdated();
-        // }
-
         grimoireScreen.onStateUpdated();
     }
 
@@ -46,6 +49,14 @@ public class ClientCoordinator {
                 RoleRevealAnimation.play(player.roleName());
             }
         }
+    }
+
+    public ClientAssetCache getAssetCache() {
+        return assetCache;
+    }
+
+    public void onAssetChunkReceived(String assetUrl, int chunkIndex, int totalChunks, byte[] chunkData) {
+        assetCache.onAssetChunkReceived(assetUrl, chunkIndex, totalChunks, chunkData);
     }
 
 

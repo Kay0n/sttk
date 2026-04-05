@@ -74,5 +74,12 @@ public class ServerPacketReceiver {
             }
         );
 
+            ServerPlayNetworking.registerGlobalReceiver(
+                C2SPackets.AssetRequestPayload.ID,
+                (payload, context) -> {
+                    coordinator.sendAssetsToClient(context.player(), payload.assetUrls());            
+                }
+            );
+
     }
 }

@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import online.refract.Sttk;
+import online.refract.client.ClientAssetCache;
 import online.refract.game.state.ClocktowerPlayer;
 
 public class TokenRenderer {
@@ -26,6 +28,7 @@ public class TokenRenderer {
     private static final float SHROUD_ASPECT = 256f / 384f; 
     private static final float VOTE_SCALE = 0.8f;
     private static final float VOTE_ASPECT = 32f / 32f;
+    private static final float ROLE_SCALE = 0.75f;
 
     private int tokenSize;
     private int layoutRadius;
@@ -35,7 +38,7 @@ public class TokenRenderer {
 
 
 
-    public void render(GuiGraphics gfx, Font font, List<ClocktowerPlayer> players, int width, int height) {
+    public void render(GuiGraphics gfx, Font font, List<ClocktowerPlayer> players, int width, int height, ClientAssetCache assetCache) {
         if (players.isEmpty()) return;
         List<PositionedToken> positioned = calculateLayout(players, width, height);
 
@@ -43,6 +46,15 @@ public class TokenRenderer {
             int x = token.x() - tokenSize / 2;
             int y = token.y() - tokenSize / 2;
             gfx.blit(RenderPipelines.GUI_TEXTURED, TOKEN_TEXTURE, x, y, 0f, 0f, tokenSize, tokenSize, tokenSize, tokenSize, 0xAAFFFFFF);
+        }
+
+        for (PositionedToken token : positioned) {
+            ResourceLocation iconTex = assetCache.getTexture(token.player().alignedIconUrl());
+            if (iconTex == null) continue;
+            int iconSize = (int)(tokenSize * ROLE_SCALE);
+            int x = token.x() - iconSize / 2;
+            int y = token.y() - iconSize / 2;
+            gfx.blit(RenderPipelines.GUI_TEXTURED, iconTex, x, y, 0f, 0f, iconSize, iconSize, iconSize, iconSize, 0xFFFFFFFF);
         }
 
         for (PositionedToken token : positioned) {
