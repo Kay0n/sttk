@@ -32,7 +32,7 @@ public class ServerCoordinator {
         this.server = server;
         this.scoreboardManager = scoreboardManager;
         this.townConnectionHandler = townConnectionHandler;
-        this.townConnectionHandler.setConnectionListener(event -> this.onSSEEvent(event));
+        this.townConnectionHandler.setConnectionListener(event -> server.execute(() -> this.onSSEEvent(event)));
     }
 
     public void updateVoteActive(boolean active) {
@@ -97,6 +97,7 @@ public class ServerCoordinator {
     public void onSSEEvent(ConnectionEvent event) {
         try {
             switch (event) {
+
                 case StatusChanged(TownConnectionStatus status) -> {
                     if (status == TownConnectionStatus.DISCONNECTED) {
                         this.state = ClocktowerState.EMPTY;
@@ -104,17 +105,18 @@ public class ServerCoordinator {
                         break;
                     }
                     this.updateConnectionStatus(status);
-
                 }
+
                 case DataReceived(String data, String townName) -> {
                     this.state = ClocktowerStateConverter.parseJsonToState(this.state, data, townName);
                     syncState();
                 }
+
             }   
-        } catch (IOException e) {
+        } 
+        catch (IOException e) {
             Sttk.LOGGER.error("Failed to parse SSE data: {}", e.getMessage());
         }
-
     }
 
 
