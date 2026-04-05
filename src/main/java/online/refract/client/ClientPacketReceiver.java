@@ -4,8 +4,14 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import online.refract.network.S2CPackets;
 
 public class ClientPacketReceiver {
+
+    public static ClientCoordinator clientCoordinator;
+
+    public static void setCoordinator(ClientCoordinator clientCoordinator){
+        ClientPacketReceiver.clientCoordinator = clientCoordinator;
+    }
     
-    public static void register(ClientCoordinator clientCoordinator) {
+    public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(
             S2CPackets.SyncStatePayload.ID,
             (payload, context) -> {

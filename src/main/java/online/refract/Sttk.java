@@ -43,17 +43,17 @@ public class Sttk implements ModInitializer {
             townConnectionHandler = new TownConnectionHandler(SSE_BASE_URL);
             assetCache = new ServerAssetCache();
             serverCoordinator = new ServerCoordinator(server, scoreboardManager, townConnectionHandler, assetCache);
-
-            ServerPacketReceiver.register(serverCoordinator);
+            ServerPacketReceiver.setCoordinator(serverCoordinator);
         });
-
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             townConnectionHandler.disconnect();
         });
-
+        
         C2SPackets.registerPackets();
         S2CPackets.registerPackets();
+
+        ServerPacketReceiver.register();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ModCommands.register(dispatcher);

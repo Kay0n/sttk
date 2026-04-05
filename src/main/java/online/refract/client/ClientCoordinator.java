@@ -1,7 +1,5 @@
 package online.refract.client;
 
-import org.jetbrains.annotations.Nullable;
-
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import online.refract.client.gui.screens.grimiore.GrimoireScreen;
 import online.refract.client.render.hud.RoleRevealAnimation;
@@ -9,7 +7,6 @@ import online.refract.game.state.ClocktowerPlayer;
 import online.refract.game.state.ClocktowerState;
 import online.refract.network.C2SPackets;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
 
 public class ClientCoordinator {
 
@@ -35,7 +32,6 @@ public class ClientCoordinator {
     public void onRecieveState(ClocktowerState newState) {
         clientState = newState;
         assetCache.onStateReceived(newState);
-        
         grimoireScreen.onStateUpdated();
     }
 
@@ -95,6 +91,12 @@ public class ClientCoordinator {
 
     public void disconnectFromTown() {
         ClientPlayNetworking.send(new C2SPackets.DisconnectFromTownPayload());
+    }
+
+
+    public void clearClient(){
+        clientState = ClocktowerState.EMPTY;
+        grimoireScreen = null;  // Add this
     }
 
 

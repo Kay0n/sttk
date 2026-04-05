@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
-import online.refract.Sttk;
 import online.refract.client.ClientAssetCache;
 import online.refract.game.state.ClocktowerPlayer;
 

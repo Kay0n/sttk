@@ -36,7 +36,7 @@ public class ServerCoordinator {
         this.server = server;
         this.scoreboardManager = scoreboardManager;
         this.townConnectionHandler = townConnectionHandler;
-        this.townConnectionHandler.setConnectionListener(event -> server.execute(() -> this.onSSEEvent(event)));
+        this.townConnectionHandler.setConnectionListener(event -> server.executeBlocking(() -> this.onSSEEvent(event)));
         this.assetCache = assetCache;
     }
 
@@ -111,13 +111,6 @@ public class ServerCoordinator {
             }
         }
     }
-
-
-
-
-
-
-
 
 
 

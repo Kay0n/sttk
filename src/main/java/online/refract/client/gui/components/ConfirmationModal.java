@@ -2,7 +2,6 @@ package online.refract.client.gui.components;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
-import online.refract.Sttk;
 import online.refract.client.ClientCoordinator;
 
 

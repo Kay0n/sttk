@@ -1,15 +1,12 @@
 package online.refract.client;
 
 import online.refract.game.server.ServerAssetCache;
-import online.refract.game.state.ClocktowerPlayer;
-import online.refract.game.state.ClocktowerRole;
 import online.refract.game.state.ClocktowerState;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import online.refract.network.C2SPackets.AssetRequestPayload;
-import online.refract.network.S2CPackets.AssetResponsePayload;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -35,7 +32,7 @@ public class ClientAssetCache {
     private static final Logger LOGGER = LoggerFactory.getLogger("sttk/ClientAssetCache");
 
 
-    private final Map<String, ResourceLocation> textureRegistry = new ConcurrentHashMap<>();
+    public final Map<String, ResourceLocation> textureRegistry = new ConcurrentHashMap<>();
     private final Set<String> pending = ConcurrentHashMap.newKeySet();
     private final Map<String, byte[][]> chunkBuffers = new ConcurrentHashMap<>();
 
@@ -104,7 +101,6 @@ public class ClientAssetCache {
                 Minecraft.getInstance().getTextureManager().register(id, texture);
                 textureRegistry.put(url, id);
                 pending.remove(url);
-                LOGGER.info("Registered client texture for {}", url);
             } catch (IOException e) {
                 LOGGER.error("Failed to read image data for {}: {}", url, e.getMessage());
                 pending.remove(url);

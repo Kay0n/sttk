@@ -4,8 +4,14 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import online.refract.network.C2SPackets;
 
 public class ServerPacketReceiver {
+
+    private static ServerCoordinator coordinator;
+
+    public static void setCoordinator(ServerCoordinator coordinator) {
+        ServerPacketReceiver.coordinator = coordinator;
+    }
     
-    public static void register(ServerCoordinator coordinator) {
+    public static void register() {
 
         ServerPlayNetworking.registerGlobalReceiver(
             C2SPackets.StartVoteForPlayerPayload.ID,
