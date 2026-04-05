@@ -1,39 +1,28 @@
-# STTK - TODO List
+
+#### Features
+ - script screen
+ - render death transparency
+ - render outlines
+ - sync on join
+ - timer support (bossbar)
+ - persist linkedUsernames mapped to names across restarts
+ - add role distribution logic (animation)
+ - add permission-based role for storyrellers
+
+ 
+#### Cleanup
+ - add proper town URL with town name
+ - add errors if json does not match expectation
+ - readme.md
+ - mod icon
 
 
-### Town Connection
-- [ ] Add proper town URL with town name
-<!-- - [ ] Implement exponential backoff -->
-- [ ] Add error handling for unexpected events
-- [ ] Add errors if json does not match expectation
-
-
-
-
-
-
-### Events
-- [ ] Add player join handling - send sync packet
-
-### Permissions
-- [ ] Add permission-based role for storyrellers
-
-
-
-### GUI
-- [ ] Add role distribution logic (animation)
-- [ ] Add colored indicators for town button to show conneciton status
-
-
-### 8. Persistance
-- [ ] Persist linkedUsernames mapped to names across restarts
+#### Extra
+ - config options (options for player button text)
+ - language support w/ components
 
 
 
-
-
-
-### Scoreboard events on state update
 
 
 
