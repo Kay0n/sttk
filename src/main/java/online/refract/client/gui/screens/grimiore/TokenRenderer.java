@@ -21,6 +21,7 @@ public class TokenRenderer {
     private static final int TOKEN_MARGIN = 1;
     private static final int SCREEN_PADDING  = 2;
     private static final int LABEL_COLOR = 0xFFFFAA00;
+    private static final int UNLINKED_LABEL_COLOR = 0xFFFF1900;
     private static final int PILL_PAD_X = 4;
     private static final int PILL_PAD_Y = 2;
     private static final float SHROUD_WIDTH_FRACTION  = 0.25f;
@@ -88,9 +89,6 @@ public class TokenRenderer {
     }
 
 
-    private static void drawTexturedRect(GuiGraphics gfx, ResourceLocation tex, Rect r, int tint) {
-        gfx.blit(RenderPipelines.GUI_TEXTURED, tex, r.x(), r.y(), 0f, 0f, r.w(), r.h(), r.w(), r.h(), tint);
-    }
 
     public void drawTextWithPill(GuiGraphics gfx, Font font, PositionedToken token) {
         String name  = token.player().name();
@@ -98,14 +96,34 @@ public class TokenRenderer {
         int textH    = font.lineHeight;
         int textX    = token.x() - textW / 2;
         int textY    = token.y() + tokenSize / 2 - textH;
+        int textColor = token.player().linkedMinecraftUsername() != null ? LABEL_COLOR : UNLINKED_LABEL_COLOR;
 
         int pillX = textX - PILL_PAD_X;
         int pillY = textY - PILL_PAD_Y;
-        drawTextBackgroundPill(gfx, pillX, pillY, textW + 2 * PILL_PAD_X, textH + 2 * PILL_PAD_Y, 0x66FFFFFF);
-        gfx.drawString(font, name, textX, textY, LABEL_COLOR);
+        drawBackgroundPill(gfx, pillX, pillY, textW + 2 * PILL_PAD_X, textH + 2 * PILL_PAD_Y, 0x66FFFFFF);
+        gfx.drawString(font, name, textX, textY, textColor);
     }
 
-    public static void drawTextBackgroundPill(GuiGraphics gfx, int x, int y, int width, int height, int color) {
+
+
+    @Nullable
+    public ClocktowerPlayer wasTokenClicked(List<ClocktowerPlayer> players, double mouseX, double mouseY, int width, int height) {
+        if (players.isEmpty()) return null;
+        List<PositionedToken> positioned = calculateLayout(players, width, height);
+        double r = tokenSize / 2.0;
+        for (PositionedToken pt : positioned) {
+            double dx = mouseX - pt.x(), dy = mouseY - pt.y();
+            if (dx * dx + dy * dy <= r * r) return pt.player();
+        }
+        return null;
+    }
+
+    private static void drawTexturedRect(GuiGraphics gfx, ResourceLocation tex, Rect r, int tint) {
+        gfx.blit(RenderPipelines.GUI_TEXTURED, tex, r.x(), r.y(), 0f, 0f, r.w(), r.h(), r.w(), r.h(), tint);
+    }
+
+
+    public static void drawBackgroundPill(GuiGraphics gfx, int x, int y, int width, int height, int color) {
         int alpha = (color >> 24) & 0xFF;
         int red   = (color >> 16) & 0xFF;
         int green = (color >>  8) & 0xFF;
@@ -138,17 +156,6 @@ public class TokenRenderer {
         }
     }
 
-    @Nullable
-    public ClocktowerPlayer wasTokenClicked(List<ClocktowerPlayer> players, double mouseX, double mouseY, int width, int height) {
-        if (players.isEmpty()) return null;
-        List<PositionedToken> positioned = calculateLayout(players, width, height);
-        double r = tokenSize / 2.0;
-        for (PositionedToken pt : positioned) {
-            double dx = mouseX - pt.x(), dy = mouseY - pt.y();
-            if (dx * dx + dy * dy <= r * r) return pt.player();
-        }
-        return null;
-    }
 
     private void calculateCircle(int n, int width, int height) {
         if (n == 0) return;
