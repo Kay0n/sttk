@@ -40,7 +40,7 @@ public class GrimoireScreen extends Screen {
         super(Component.nullToEmpty("Grimoire"));
         this.clientCoordinator = clientCoordinator;
         linkPlayerModal = registerModal(new LinkPlayerModal(clientCoordinator));
-        playerModal = registerModal(new PlayerModal(clientCoordinator, linkPlayerModal));
+        playerModal = registerModal(new PlayerModal(clientCoordinator, linkPlayerModal, false));
         townModal = registerModal(new TownModal(clientCoordinator));
         voteModal = registerModal(new VoteModal(clientCoordinator));
         confirmationModal = registerModal(new ConfirmationModal(
@@ -59,6 +59,9 @@ public class GrimoireScreen extends Screen {
     public void onStateUpdated() {
         if (townModal.isOpen()) {
             townModal.updateComponents();
+        }
+        if (playerModal.isOpen() && playerModal.getPlayer() != null) {
+            playerModal.openModal(playerModal.getPlayer());
         }
         rebuildButtons();
     }

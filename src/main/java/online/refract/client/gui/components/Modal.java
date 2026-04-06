@@ -122,6 +122,15 @@ public abstract class Modal {
         this.rows.add(new RowData(List.of(widget), height));
     }
 
+    protected void addLabelRow(String text) {
+        addLabelRow(text, 0xFFFFFFFF, 1f);
+    }
+
+    protected void addLabelRow(String text, int color, float scale) {
+        StaticTextWidget label = new StaticTextWidget(this.font, Component.literal(text), color, scale);
+        this.rows.add(new RowData(List.of(label), (int)(this.font.lineHeight * scale)));
+    }
+
     protected void clearWidgets() {
         this.rows.clear();
         this.modalWidgets.clear();
