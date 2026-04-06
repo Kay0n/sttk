@@ -41,9 +41,9 @@ public class ClientCoordinator {
     public void playShowRoleAnimation() {
         for (ClocktowerPlayer player : getState().players()) {
             String localPlayerName = Minecraft.getInstance().player.getName().getString();
-            if (player.linkedMinecraftUsername() == localPlayerName) {
-
-                RoleRevealAnimation.play(player.roleName());
+            if (player.linkedMinecraftUsername() == null){ continue; }
+            if (player.linkedMinecraftUsername().equals(localPlayerName)) {
+                RoleRevealAnimation.play(player.roleName(), player.alignedIconUrl());
             }
         }
     }

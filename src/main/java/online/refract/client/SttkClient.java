@@ -54,7 +54,8 @@ public class SttkClient implements ClientModInitializer {
             }
         });
 
-        RoleRevealAnimation.register();
+
+        RoleRevealAnimation.register(assetCache);
 
         ClientPacketReceiver.register();
         ClientPacketReceiver.setCoordinator(coordinator);
