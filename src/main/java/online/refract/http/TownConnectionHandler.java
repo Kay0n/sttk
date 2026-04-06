@@ -141,7 +141,6 @@ public class TownConnectionHandler {
     }
 
     private void emit(ConnectionEvent event) {
-        Sttk.LOGGER.info("Emitting event type: {}", event.getClass().getSimpleName());
         listener.accept(event);
     }
 }

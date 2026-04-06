@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.resources.ResourceLocation;
 import online.refract.game.server.ModCommands;
+import online.refract.game.server.PlayerLinkStore;
 import online.refract.game.server.ScoreboardManager;
 import online.refract.game.server.ServerAssetCache;
 import online.refract.game.server.ServerPacketReceiver;
@@ -27,6 +28,7 @@ public class Sttk implements ModInitializer {
     public TownConnectionHandler townConnectionHandler;
     public ScoreboardManager scoreboardManager;
     public ServerAssetCache assetCache;
+    public PlayerLinkStore playerLinkStore;
 
 
 
@@ -43,7 +45,8 @@ public class Sttk implements ModInitializer {
             scoreboardManager = new ScoreboardManager(server);
             townConnectionHandler = new TownConnectionHandler(SSE_BASE_URL);
             assetCache = new ServerAssetCache();
-            serverCoordinator = new ServerCoordinator(server, scoreboardManager, townConnectionHandler, assetCache);
+            playerLinkStore = new PlayerLinkStore();
+            serverCoordinator = new ServerCoordinator(server, scoreboardManager, townConnectionHandler, assetCache, playerLinkStore);
             ServerPacketReceiver.setCoordinator(serverCoordinator);
         });
 

@@ -27,30 +27,41 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 public class ServerCoordinator {
 
-
     private ClocktowerState state = ClocktowerState.EMPTY;
     private MinecraftServer server;
     private ScoreboardManager scoreboardManager;
     private TownConnectionHandler townConnectionHandler;
     private ServerAssetCache assetCache;
+    private PlayerLinkStore playerLinkStore;
 
-    public ServerCoordinator(MinecraftServer server, ScoreboardManager scoreboardManager, TownConnectionHandler townConnectionHandler, ServerAssetCache assetCache) {
+
+    public ServerCoordinator(
+        MinecraftServer server, 
+        ScoreboardManager scoreboardManager, 
+        TownConnectionHandler townConnectionHandler, 
+        ServerAssetCache assetCache,
+        PlayerLinkStore playerLinkStore
+    ) {
         this.server = server;
         this.scoreboardManager = scoreboardManager;
         this.townConnectionHandler = townConnectionHandler;
         this.townConnectionHandler.setConnectionListener(event -> server.executeBlocking(() -> this.onSSEEvent(event)));
         this.assetCache = assetCache;
+        this.playerLinkStore = playerLinkStore;
     }
+
 
     public void updateVoteActive(boolean active) {
         state = state.withVoteActive(active);
         syncState();
     }
 
+
     public void updateConnectionStatus(TownConnectionStatus newStatus) {
         this.state = state.withTownConnectionStatus(newStatus);
         syncState();
     }
+
 
     public void updatePlayerLink(String clocktowerPlayerName, String linkedMinecraftUsername) {
         state = state.mapPlayers(p -> {
@@ -63,13 +74,16 @@ public class ServerCoordinator {
             return p;
         });
         syncState();
+        state.players().forEach(p -> playerLinkStore.set(p.name(), p.linkedMinecraftUsername()));
     }
+
 
     public void startVoteForPlayer(ClocktowerPlayer player) {
         state = state.withVoteActive(true);
         syncState();
         scoreboardManager.startVoteForPlayer(player, state);
     }
+
 
     public void stopVote() {
         state = state.withVoteActive(false);
@@ -78,22 +92,25 @@ public class ServerCoordinator {
     }
 
 
-
     public void requestPrivateChat(ClocktowerPlayer player) {
         scoreboardManager.requestPrivateChat(player);
     }
+
 
     public void requestTeleportToPlayer(ClocktowerPlayer player) {
         scoreboardManager.requestTeleportToPlayer(player);
     }
 
+
     public void requestTeleportToHouse(ClocktowerPlayer player) {
         scoreboardManager.requestTeleportToHouse(player);
     }
 
+
     public void connectToTown(String townName) {
         townConnectionHandler.connect(townName);
     }
+
 
     public void disconnectFromTown() {
         townConnectionHandler.disconnect();
@@ -124,14 +141,12 @@ public class ServerCoordinator {
     }
 
 
-
-
-
     private void syncState() {
         sendToAllClients(new SyncStatePayload(state));
         scoreboardManager.onStateChange(state);
     }
 
+    
     public void broadcastStateToClient(ServerPlayer player){
         SyncStatePayload payload = new SyncStatePayload(state);
         ServerPlayNetworking.send(player, payload);
@@ -145,26 +160,37 @@ public class ServerCoordinator {
     }
 
 
+
     public void onSSEEvent(ConnectionEvent event) {
-        try {
-            switch (event) {
-                case StatusChanged(TownConnectionStatus status) -> {
-                    if (status != TownConnectionStatus.CONNECTED) {
-                        this.state = ClocktowerState.EMPTY;
-                        syncState();
-                        break;
-                    }
-                    this.updateConnectionStatus(status);
-                }
-                case DataReceived(String data, String townName) -> {
-                    this.state = ClocktowerStateConverter.parseJsonToState(this.state, data, townName);
-                    syncState();
-                }
-            }   
-        } 
-        catch (IOException e) {
-            Sttk.LOGGER.error("Failed to parse SSE data: {}", e.getMessage());
+        switch (event) {
+            case StatusChanged(TownConnectionStatus status) -> handleStatusChange(status);
+            case DataReceived(String data, String townName) -> handleDataRecieved(data, townName);
+        }   
+    }
+
+    private void handleStatusChange(TownConnectionStatus status){
+        if (status == TownConnectionStatus.CONNECTED) {
+            this.updateConnectionStatus(status);
+            return;
         }
+        this.state = ClocktowerState.EMPTY.withTownConnectionStatus(status);
+        syncState();
+    }
+
+    private void handleDataRecieved(String data, String townName) {
+        boolean restoreState = state.townName().equals("");
+        try {
+            this.state = ClocktowerStateConverter.parseJsonToState(this.state, data, townName);
+        } catch (IOException e) {
+            Sttk.LOGGER.error("Failed to parse SSE data: {}", e.getMessage());
+        } 
+        if (restoreState){
+            this.state = this.state.mapPlayers(p -> {
+                String storedUsername = playerLinkStore.get(p.name());
+                return storedUsername != null ? p.withLinkedMinecraftUsername(storedUsername) : p;
+            });
+        }
+        syncState();
     }
 
 
