@@ -20,6 +20,7 @@ import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
@@ -52,10 +53,15 @@ public class ServerCoordinator {
     }
 
     public void updatePlayerLink(String clocktowerPlayerName, String linkedMinecraftUsername) {
-        state = state.withUpdatedPlayer(
-            clocktowerPlayerName,
-            player -> player.withLinkedMinecraftUsername(linkedMinecraftUsername)
-        );
+        state = state.mapPlayers(p -> {
+            if (Objects.equals(p.linkedMinecraftUsername(), linkedMinecraftUsername)) {
+                return p.withLinkedMinecraftUsername(null);
+            }
+            if (Objects.equals(p.name(), clocktowerPlayerName)) {
+                return p.withLinkedMinecraftUsername(linkedMinecraftUsername);
+            }
+            return p;
+        });
         syncState();
     }
 

@@ -3,6 +3,7 @@ package online.refract.game.state;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import com.mojang.serialization.Codec;
@@ -83,6 +84,22 @@ public record ClocktowerState(
             scriptEdition,
             isVoteActive,
             status
+        );
+    }
+
+    public ClocktowerState mapPlayers(Function<ClocktowerPlayer, ClocktowerPlayer> mapper) {
+        List<ClocktowerPlayer> newPlayers = players.stream()
+            .map(mapper)
+            .toList();
+        return new ClocktowerState(
+            newPlayers,
+            roles,
+            currentDay,
+            currentPhase,
+            townName,
+            scriptEdition,
+            isVoteActive,
+            townConnectionStatus
         );
     }
 
