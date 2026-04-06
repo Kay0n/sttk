@@ -15,6 +15,7 @@ import online.refract.http.TownConnectionHandler.ConnectionEvent.StatusChanged;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -95,6 +96,10 @@ public class ServerCoordinator {
 
     public void distributeRolesToTown() {
         sendToAllClients(new ShowRoleAnimationPayload());
+    }
+
+    public void onPlayerJoin(ServerGamePacketListenerImpl handler){
+        broadcastStateToClient(handler.getPlayer());
     }
 
 

@@ -32,6 +32,7 @@ public class ClientCoordinator {
     public void onRecieveState(ClocktowerState newState) {
         clientState = newState;
         assetCache.onStateReceived(newState);
+        if (grimoireScreen == null) return;
         grimoireScreen.onStateUpdated();
     }
 

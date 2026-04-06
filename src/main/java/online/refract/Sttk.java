@@ -2,6 +2,7 @@ package online.refract;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.resources.ResourceLocation;
 import online.refract.game.server.ModCommands;
 import online.refract.game.server.ScoreboardManager;
@@ -58,6 +59,10 @@ public class Sttk implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ModCommands.register(dispatcher);
         });
+
+        ServerPlayConnectionEvents.JOIN.register(((handler, sender, server) -> {
+            serverCoordinator.onPlayerJoin((handler));
+        }));
 
     }
 
