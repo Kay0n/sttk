@@ -27,6 +27,7 @@ public class ClocktowerStateConverter {
         JsonNode playersNode = rootNode.get("playersInGrim");
         JsonNode rolesNode = rootNode.get("rolesInScript");
         JsonNode scriptNameNode = rootNode.get("scriptName");
+        JsonNode timerNode = rootNode.get("timer");
         
         List<ClocktowerPlayer> players = new ArrayList<>();
         List<ClocktowerRole> scriptRoles = new ArrayList<>();
@@ -54,6 +55,7 @@ public class ClocktowerStateConverter {
         String currentPhaseStr = gameStateNode != null ? gameStateNode.get("currentPhase").asText() : "Day";
         GamePhase currentPhase = GamePhase.valueOf(currentPhaseStr.toUpperCase());
         String scriptEdition = scriptNameNode != null ? scriptNameNode.asText() : "Unknown";
+        TimerState timer = parseTimerState(timerNode);
         
         return new ClocktowerState(
             players,
@@ -63,6 +65,7 @@ public class ClocktowerStateConverter {
             townName,
             scriptEdition,
             currentState.isVoteActive(), 
+            timer,
             TownConnectionStatus.CONNECTED
         );
     }
@@ -92,23 +95,41 @@ public class ClocktowerStateConverter {
         );
     }
 
-private static ClocktowerRole getClocktowerRole(JsonNode roleNode) {
-    String name = roleNode.get("name").asText();
-    String typeStr = roleNode.get("type").asText();
-    RoleType type = RoleType.from(typeStr);
-    boolean isGood = roleNode.get("alignment").asText().equals("Good");
-    String alignedIconUrl = isGood ? roleNode.get("officialGoodIcon").asText() : roleNode.get("officialEvilIcon").asText();
-    String abilityText = roleNode.get("ability").asText();
-    String edition = roleNode.get("edition").asText();
-    return new ClocktowerRole(
-        name,
-        type,
-        isGood ? Alignment.GOOD : Alignment.EVIL,
-        alignedIconUrl,
-        abilityText,
-        edition
-    );
-}
+    private static ClocktowerRole getClocktowerRole(JsonNode roleNode) {
+        String name = roleNode.get("name").asText();
+        String typeStr = roleNode.get("type").asText();
+        RoleType type = RoleType.from(typeStr);
+        boolean isGood = roleNode.get("alignment").asText().equals("Good");
+        String alignedIconUrl = isGood ? roleNode.get("officialGoodIcon").asText() : roleNode.get("officialEvilIcon").asText();
+        String abilityText = roleNode.get("ability").asText();
+        String edition = roleNode.get("edition").asText();
+        return new ClocktowerRole(
+            name,
+            type,
+            isGood ? Alignment.GOOD : Alignment.EVIL,
+            alignedIconUrl,
+            abilityText,
+            edition
+        );
+    }
+
+    private static TimerState parseTimerState(@Nullable JsonNode timerNode) {
+        if (timerNode == null || timerNode.isNull()) {
+            return TimerState.EMPTY;
+        }
+
+        boolean isRunning = timerNode.get("isRunning").asBoolean();
+        boolean isStopwatch = timerNode.get("isStopwatch").asBoolean();
+        int currentTime = timerNode.get("currentTime").asInt();
+        int targetTime = timerNode.get("targetTime").asInt();
+
+        JsonNode timestampNode = timerNode.get("startTimestamp");
+        Long startTimestamp = (timestampNode != null && !timestampNode.isNull())
+            ? timestampNode.asLong()
+            : null;
+
+        return new TimerState(isRunning, isStopwatch, currentTime, targetTime, startTimestamp);
+    }
 
 
 }

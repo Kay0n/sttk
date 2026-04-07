@@ -23,7 +23,7 @@ public record ClocktowerState(
     String townName,
     String scriptEdition,
     boolean isVoteActive,
-    // TODO: TimerState class
+    TimerState timer,
     TownConnectionStatus townConnectionStatus
 ) {
 
@@ -40,9 +40,9 @@ public record ClocktowerState(
         "",
         "",
         false,
+        TimerState.EMPTY,
         TownConnectionStatus.DISCONNECTED
     );
-
 
     public ClocktowerState withVoteActive(boolean active) {
         return new ClocktowerState(
@@ -53,6 +53,15 @@ public record ClocktowerState(
             townName,
             scriptEdition,
             active,
+            timer,
+            townConnectionStatus
+        );
+    }
+    public ClocktowerState withTimer(TimerState timer) {
+        return new ClocktowerState(
+            players, roles, currentDay, currentPhase,
+            townName, scriptEdition, isVoteActive,
+            timer,
             townConnectionStatus
         );
     }
@@ -69,6 +78,7 @@ public record ClocktowerState(
             townName,
             scriptEdition,
             isVoteActive,
+            timer,
             townConnectionStatus
         );
     }
@@ -83,6 +93,7 @@ public record ClocktowerState(
             townName,
             scriptEdition,
             isVoteActive,
+            timer,
             status
         );
     }
@@ -99,6 +110,7 @@ public record ClocktowerState(
             townName,
             scriptEdition,
             isVoteActive,
+            timer,
             townConnectionStatus
         );
     }
@@ -110,7 +122,7 @@ public record ClocktowerState(
         return urls;
     }
 
-    public static final Codec<ClocktowerState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+ public static final Codec<ClocktowerState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.list(ClocktowerPlayer.CODEC).fieldOf("players").forGetter(ClocktowerState::players),
         Codec.list(ClocktowerRole.CODEC).fieldOf("roles").forGetter(ClocktowerState::roles),
         Codec.INT.optionalFieldOf("current_day", 0).forGetter(ClocktowerState::currentDay),
@@ -118,11 +130,11 @@ public record ClocktowerState(
         Codec.STRING.optionalFieldOf("town_name", "Unknown").forGetter(ClocktowerState::townName),
         Codec.STRING.optionalFieldOf("script_edition", "Unknown").forGetter(ClocktowerState::scriptEdition),
         Codec.BOOL.optionalFieldOf("is_vote_active", false).forGetter(ClocktowerState::isVoteActive),
+        TimerState.CODEC.optionalFieldOf("timer", TimerState.EMPTY).forGetter(ClocktowerState::timer),
         TownConnectionStatus.CODEC.optionalFieldOf("town_connection_status", TownConnectionStatus.DISCONNECTED)
             .forGetter(ClocktowerState::townConnectionStatus)
     ).apply(instance, ClocktowerState::new));
 
-    // uses StreamCodec.of instead of StreamCodec.composite as composite has a 12 (6 pairs) argument overload limit 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClocktowerState> STREAM_CODEC = StreamCodec.of(
         (buf, state) -> {
             ClocktowerPlayer.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, state.players());
@@ -132,6 +144,7 @@ public record ClocktowerState(
             ByteBufCodecs.STRING_UTF8.encode(buf, state.townName());
             ByteBufCodecs.STRING_UTF8.encode(buf, state.scriptEdition());
             ByteBufCodecs.BOOL.encode(buf, state.isVoteActive());
+            TimerState.STREAM_CODEC.encode(buf, state.timer());
             TownConnectionStatus.STREAM_CODEC.encode(buf, state.townConnectionStatus());
         },
         buf -> new ClocktowerState(
@@ -142,6 +155,7 @@ public record ClocktowerState(
             ByteBufCodecs.STRING_UTF8.decode(buf),
             ByteBufCodecs.STRING_UTF8.decode(buf),
             ByteBufCodecs.BOOL.decode(buf),
+            TimerState.STREAM_CODEC.decode(buf),
             TownConnectionStatus.STREAM_CODEC.decode(buf)
         )
     );
