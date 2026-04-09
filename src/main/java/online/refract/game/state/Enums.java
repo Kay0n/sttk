@@ -39,6 +39,24 @@ public class Enums {
             }
             return TOWNSFOLK;
         }
+
+        public static int bgColor(RoleType type) {
+            return switch (type) {
+                case TOWNSFOLK -> 0xFF1A3A5C;  
+                case OUTSIDER  -> 0xFF1A3A3A; 
+                case MINION    -> 0xFF3A1A1A;  
+                case DEMON     -> 0xFF2A0A0A;  
+            };
+        }
+
+        public static int textColor(RoleType type) {
+            return switch (type) {
+                case TOWNSFOLK -> 0xFF7EC8E3;
+                case OUTSIDER  -> 0xFF7EC8A0;
+                case MINION    -> 0xFFE38A7E;
+                case DEMON     -> 0xFFFF4444;
+            };
+        }
     }
 
     public enum TownConnectionStatus implements StringRepresentable {
