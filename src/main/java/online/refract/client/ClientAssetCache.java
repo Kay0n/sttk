@@ -16,17 +16,14 @@ import com.mojang.blaze3d.platform.NativeImage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Client-side asset cache. In-memory only — no disk persistence.
- *
- * Lifecycle:
- *   onStateReceived()    — diff new hashes against what we have, request missing
- *   onAssetChunkReceived() — assemble chunks, register texture when complete
- *   clear()              — call on world disconnect to free GL textures
- */
+
 public class ClientAssetCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("sttk/ClientAssetCache");

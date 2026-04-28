@@ -1,6 +1,5 @@
 package online.refract.client.gui.screens.script;
 
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractScrollArea;
 import net.minecraft.client.gui.components.Button;
@@ -25,7 +24,7 @@ public class ScriptScreen extends Screen {
     private RoleListWidget listWidget;
 
 
-    
+
     public ScriptScreen(ClientCoordinator coordinator) {
         super(Component.literal(coordinator.getState().scriptEdition()));
         this.editionName     = coordinator.getState().scriptEdition();

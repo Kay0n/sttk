@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -50,12 +52,16 @@ public class ClocktowerStateConverter {
                 scriptRoles.add(getClocktowerRole(roleNode));
             }
         }
+
+
         
         int currentDay = gameStateNode != null ? gameStateNode.get("currentDay").asInt() : 0;
         String currentPhaseStr = gameStateNode != null ? gameStateNode.get("currentPhase").asText() : "Day";
         GamePhase currentPhase = GamePhase.valueOf(currentPhaseStr.toUpperCase());
         String scriptEdition = scriptNameNode != null ? scriptNameNode.asText() : "Unknown";
         TimerState timer = parseTimerState(timerNode);
+        List<String> firstNightOrder = parseNightOrder(rootNode.get("nightOrder"), "firstNight", scriptRoles);
+        List<String> otherNightOrder = parseNightOrder(rootNode.get("nightOrder"), "otherNight", scriptRoles);
         
         return new ClocktowerState(
             players,
@@ -64,6 +70,8 @@ public class ClocktowerStateConverter {
             currentPhase,
             townName,
             scriptEdition,
+            firstNightOrder,
+            otherNightOrder,
             currentState.isVoteActive(), 
             timer,
             TownConnectionStatus.CONNECTED
@@ -129,6 +137,33 @@ public class ClocktowerStateConverter {
             : null;
 
         return new TimerState(isRunning, isStopwatch, currentTime, targetTime, startTimestamp);
+    }
+
+    private static List<String> parseNightOrder( @Nullable JsonNode nightOrderNode, String key, List<ClocktowerRole> scriptRoles) {
+
+        if (nightOrderNode == null || nightOrderNode.isNull()) {
+            return List.of();
+        }
+
+        JsonNode orderNode = nightOrderNode.get(key);
+        if (orderNode == null || !orderNode.isArray()) {
+            return List.of();
+        }
+
+        Map<String, String> scriptRolesByNormalized = scriptRoles.stream().collect(Collectors.toMap(
+            role -> role.name().toLowerCase().replace(" ", ""),
+            ClocktowerRole::name
+        ));
+
+        List<String> result = new ArrayList<>();
+        for (JsonNode entry : orderNode) {
+            String matched = scriptRolesByNormalized.get(entry.asText().toLowerCase());
+            if (matched != null) {
+                result.add(matched);
+            }
+        }
+
+        return result;
     }
 
 

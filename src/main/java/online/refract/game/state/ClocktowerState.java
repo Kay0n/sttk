@@ -22,6 +22,8 @@ public record ClocktowerState(
     GamePhase currentPhase,
     String townName,
     String scriptEdition,
+    List<String> firstNightOrder,
+    List<String> otherNightOrder,
     boolean isVoteActive,
     TimerState timer,
     TownConnectionStatus townConnectionStatus
@@ -39,6 +41,8 @@ public record ClocktowerState(
         GamePhase.DAY,
         "",
         "",
+        List.of(),
+        List.of(),
         false,
         TimerState.EMPTY,
         TownConnectionStatus.DISCONNECTED
@@ -52,6 +56,8 @@ public record ClocktowerState(
             currentPhase,
             townName,
             scriptEdition,
+            firstNightOrder,
+            otherNightOrder,
             active,
             timer,
             townConnectionStatus
@@ -60,7 +66,7 @@ public record ClocktowerState(
     public ClocktowerState withTimer(TimerState timer) {
         return new ClocktowerState(
             players, roles, currentDay, currentPhase,
-            townName, scriptEdition, isVoteActive,
+            townName, scriptEdition, firstNightOrder, otherNightOrder, isVoteActive,
             timer,
             townConnectionStatus
         );
@@ -77,6 +83,8 @@ public record ClocktowerState(
             currentPhase,
             townName,
             scriptEdition,
+            firstNightOrder, 
+            otherNightOrder,
             isVoteActive,
             timer,
             townConnectionStatus
@@ -92,6 +100,8 @@ public record ClocktowerState(
             currentPhase,
             townName,
             scriptEdition,
+            firstNightOrder, 
+            otherNightOrder,
             isVoteActive,
             timer,
             status
@@ -109,6 +119,8 @@ public record ClocktowerState(
             currentPhase,
             townName,
             scriptEdition,
+            firstNightOrder, 
+            otherNightOrder,
             isVoteActive,
             timer,
             townConnectionStatus
@@ -129,6 +141,8 @@ public record ClocktowerState(
         GamePhase.CODEC.optionalFieldOf("current_phase", GamePhase.DAY).forGetter(ClocktowerState::currentPhase),
         Codec.STRING.optionalFieldOf("town_name", "Unknown").forGetter(ClocktowerState::townName),
         Codec.STRING.optionalFieldOf("script_edition", "Unknown").forGetter(ClocktowerState::scriptEdition),
+        Codec.list(Codec.STRING).fieldOf("first_night_order").forGetter(ClocktowerState::firstNightOrder),
+        Codec.list(Codec.STRING).fieldOf("other_night_order").forGetter(ClocktowerState::otherNightOrder),
         Codec.BOOL.optionalFieldOf("is_vote_active", false).forGetter(ClocktowerState::isVoteActive),
         TimerState.CODEC.optionalFieldOf("timer", TimerState.EMPTY).forGetter(ClocktowerState::timer),
         TownConnectionStatus.CODEC.optionalFieldOf("town_connection_status", TownConnectionStatus.DISCONNECTED)
@@ -143,6 +157,8 @@ public record ClocktowerState(
             GamePhase.STREAM_CODEC.encode(buf, state.currentPhase());
             ByteBufCodecs.STRING_UTF8.encode(buf, state.townName());
             ByteBufCodecs.STRING_UTF8.encode(buf, state.scriptEdition());
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, state.firstNightOrder());
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, state.otherNightOrder());
             ByteBufCodecs.BOOL.encode(buf, state.isVoteActive());
             TimerState.STREAM_CODEC.encode(buf, state.timer());
             TownConnectionStatus.STREAM_CODEC.encode(buf, state.townConnectionStatus());
@@ -154,6 +170,8 @@ public record ClocktowerState(
             GamePhase.STREAM_CODEC.decode(buf),
             ByteBufCodecs.STRING_UTF8.decode(buf),
             ByteBufCodecs.STRING_UTF8.decode(buf),
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf),
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf),
             ByteBufCodecs.BOOL.decode(buf),
             TimerState.STREAM_CODEC.decode(buf),
             TownConnectionStatus.STREAM_CODEC.decode(buf)
